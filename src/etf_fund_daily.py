@@ -22,7 +22,7 @@ def get_fund_daily(ts_code):
     df = pro.fund_daily(**{
         "trade_date": "",
         "start_date": 20250101,
-        "end_date": 20250826,
+        "end_date": 20250829,
         "ts_code": ts_code,
         "limit": 1000,
         "offset": ""

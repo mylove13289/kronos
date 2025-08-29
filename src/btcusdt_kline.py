@@ -82,13 +82,6 @@ def handle_kline_message(data,interval=None):
             print(f"转换后的数据: {converted_data}")
 
             # 数据库配置信息
-            db_config = {
-                'host': '8.216.81.73',
-                'port': 3306,
-                'user': 'root',
-                'password': 'Ff123456fx',
-                'database': 'zero'
-            }
 
             # 保存到MySQL
             save_kline_to_mysql(converted_data, DB_CONFIG,interval)
