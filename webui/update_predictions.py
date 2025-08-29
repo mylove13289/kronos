@@ -31,8 +31,9 @@ Config = {
 def load_model():
     """Loads the Kronos model and tokenizer."""
     print("Loading Kronos model...")
-    tokenizer = KronosTokenizer.from_pretrained("NeoQuasar/Kronos-Tokenizer-base", cache_dir=Config["MODEL_PATH"])
-    model = Kronos.from_pretrained("NeoQuasar/Kronos-base", cache_dir=Config["MODEL_PATH"])
+    print(Config["MODEL_PATH"] + "NeoQuasar/Kronos-Tokenizer-base")
+    tokenizer = KronosTokenizer.from_pretrained(Config["MODEL_PATH"] + "NeoQuasar/Kronos-Tokenizer-base")
+    model = Kronos.from_pretrained(Config["MODEL_PATH"] + "NeoQuasar/Kronos-base")
     tokenizer.eval()
     model.eval()
     predictor = KronosPredictor(model, tokenizer, device="cpu", max_context=512)
@@ -277,8 +278,8 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    model_path = Path(Config["MODEL_PATH"])
-    model_path.mkdir(parents=True, exist_ok=True)
+    #model_path = Path(Config["MODEL_PATH"])
+    #model_path.mkdir(parents=True, exist_ok=True)
 
     args = parse_args()
     # Use command line arguments if provided, otherwise use defaults
