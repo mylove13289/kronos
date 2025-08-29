@@ -269,9 +269,9 @@ def run_scheduler(model):
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description='Update predictions with custom symbol and iinterval')
+    parser = argparse.ArgumentParser(description='Update predictions with custom symbol and interval')
     parser.add_argument('--symbol', type=str ,default='BTCUSDT', help='Trading symbol (e.g., BTCUSDT, ETHUSDT)')
-    parser.add_argument('--iinterval', type=str ,default='15m', help='Kline interval (e.g., 15m, 1h, 4h)')
+    parser.add_argument('--interval', type=str ,default='15m', help='Kline interval (e.g., 15m, 1h, 4h)')
     return parser.parse_args()
 
 
@@ -283,7 +283,7 @@ if __name__ == '__main__':
     args = parse_args()
     # Use command line arguments if provided, otherwise use defaults
     symbol = args.symbol
-    interval = args.iinterval
+    interval = args.interval
 
     loaded_model = load_model()
     main_task(loaded_model, symbol, interval)  # Run once on startu
