@@ -31,9 +31,10 @@ Config = {
 def load_model():
     """Loads the Kronos model and tokenizer."""
     print("Loading Kronos model...")
-    print(Config["MODEL_PATH"] + "NeoQuasar/Kronos-Tokenizer-base")
     tokenizer = KronosTokenizer.from_pretrained(Config["MODEL_PATH"] + "NeoQuasar/Kronos-Tokenizer-base")
+    print("success_load_tokenizer")
     model = Kronos.from_pretrained(Config["MODEL_PATH"] + "NeoQuasar/Kronos-base")
+    print("success_load_model")
     tokenizer.eval()
     model.eval()
     predictor = KronosPredictor(model, tokenizer, device="cpu", max_context=512)
