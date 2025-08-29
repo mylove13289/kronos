@@ -5,6 +5,9 @@ from sqlalchemy import create_engine, text
 import pymysql
 from datetime import datetime
 import pandas as pd
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
+from db_config import DB_CONFIG
 
 # 初始化pro接口
 pro = ts.pro_api('6ec6092a6816b497cb6c54214c5c26e12a83a245b9169447e0fea08f')
@@ -19,10 +22,15 @@ def get_fund_daily(ts_code):
     Returns:
     DataFrame: 基金每日行情数据
     """
+    # 获取当前日期的下一天
+    tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y%m%d')
+    # 获取6个月前的日期
+    six_months_ago = (datetime.now() - relativedelta(months=6)).strftime('%Y%m%d')
+
     df = pro.fund_daily(**{
         "trade_date": "",
         "start_date": 20250101,
-        "end_date": 20250829,
+        "end_date": tomorrow,
         "ts_code": ts_code,
         "limit": 1000,
         "offset": ""
@@ -90,16 +98,10 @@ if __name__ == "__main__":
     df['iinterval'] = '1d'
 
     # 数据库配置信息
-    db_config = {
-        'host': '8.216.81.73',
-        'port': 3306,
-        'user': 'root',
-        'password': 'Ff123456fx',
-        'database': 'zero'
-    }
+
 
     # 保存数据到数据库
-    save_to_mysql_replace(df, 'new_kline_data', db_config)
+    save_to_mysql_replace(df, 'new_kline_data', DB_CONFIG)
 
     print(df)
 

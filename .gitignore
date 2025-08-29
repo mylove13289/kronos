@@ -9,7 +9,7 @@ target/
 .settings
 .springBeans
 
-webui
+#webui
 ### IntelliJ IDEA ###
 .idea
 
