@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Kronos Live Forecast | BTC/USDT
+  </title>
+  <link href="img/logo.png" rel="icon" type="image/png"/>
+  <link href="style.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Roboto+Slab:wght@400;700&amp;display=swap" rel="stylesheet"/>
+ </head>
+ <body>
+  <!--
+    <header>
+        <div class="container">
+            <h1 class="project-title">Kronos: Live Probabilistic Forecast</h1>
+            <p class="subtitle">A Demo of "Kronos: A Foundation Model for the Language of Financial Markets"</p>
+            <a href="https://github.com/shiyu-coder/Kronos" target="_blank" class="repo-link">View Project on GitHub</a>
+        </div>
+    </header>
+    -->
+  <main class="container">
+   <!-- Section 1: The Live Dashboard -->
+   <section id="live-dashboard">
+    <h2>
+     实时 BTC/USDT 预测仪表盘
+    </h2>
+    <div class="metadata">
+     <span>
+      Last Updated:
+      <strong id="update-time">
+       2025-08-31 21:24:39
+      </strong>
+     </span>
+     <span>
+      Data Source: Binance | Interval: 15minute
+     </span>
+    </div>
+    <div class="metrics-container">
+     <div class="metric-card">
+      <h3>
+       上涨概率（未来 24 小时）
+      </h3>
+      <p class="metric-value" id="upside-prob">
+       100.0%
+      </p>
+      <div class="metric-desc">
+       该模型对 24 小时内的价格将高于最后已知价格的信心。
+      </div>
+     </div>
+     <div class="metric-card">
+      <h3>
+       波动率放大（未来 24 小时）
+      </h3>
+      <p class="metric-value" id="vol-amp-prob">
+       100.0%
+      </p>
+      <div class="metric-desc">
+       未来 24 小时预测波动率超过近期历史波动率的概率。
+      </div>
+     </div>
+    </div>
+    <div class="chart-wrapper">
+     <h3>
+      24小时概率预报
+     </h3>
+     <p>
+      下图显示了历史价格（蓝色）和概率预测（橙色）。橙色线是多次蒙特卡洛模拟的平均值，阴影区域代表预测结果的全部范围，表明预测的不确定性。
+     </p>
+     <div class="container-list">
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_21_24_39.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_21_21_32.png"/>
+      </div>
+
+     
+     </div>
+    </div>
+   </section>
+   <!-- Section 2: Methodology -->
+   <section id="methodology">
+    <h2>
+     Methodology Overview
+    </h2>
+    <p>
+     This demo showcases the forecasting results of
+     <strong>
+      Kronos
+     </strong>
+     , a foundation model pre-trained on the "language" of financial markets. The predictions are generated using the following process:
+    </p>
+    <ul>
+     <li>
+      <strong>
+       Model:
+      </strong>
+      The `Kronos-base` (102.3M parameters) model is used to autoregressively predict future K-line data.
+     </li>
+     <li>
+      <strong>
+       Data Context:
+      </strong>
+      The model uses the last 360 hours (~15 days) of BTC/USDT 1h K-line data from Binance as context for each new prediction.
+     </li>
+     <li>
+      <strong>
+       Probabilistic Forecasting:
+      </strong>
+      We employ Monte Carlo sampling (N=30 paths) to generate a distribution of possible future price trajectories, not just a single point forecast.
+     </li>
+     <li>
+      <strong>
+       Derived Insights:
+      </strong>
+      The resulting distribution is analyzed to produce the mean forecast (solid line), the uncertainty range (shaded area), and the key probability metrics shown above.
+     </li>
+    </ul>
+   </section>
+   <!-- Section 3: About the Project
+        <section id="about-project">
+            <h2>About The Kronos Project</h2>
+            <p>Kronos is the first open-source foundation model for financial candlesticks (K-lines), trained on data from over 45 global exchanges. It is designed to serve as a unified model for diverse quantitative finance tasks. </p>
+            <div class="project-links">
+                <a href="https://github.com/shiyu-coder/Kronos" class="btn btn-primary" target="_blank">View on GitHub</a>
+                <a href="https://arxiv.org/abs/2508.02739" class="btn btn-secondary" target="_blank">Read the Paper</a>
+            </div>
+        </section>
+         -->
+  </main>
+  <footer>
+   <div class="container">
+    <p>
+     本网站核心算法自于
+     <a href="https://github.com/shiyu-coder/Kronos" target="_blank">
+      Kronos
+     </a>
+    </p>
+   </div>
+  </footer>
+ </body>
+</html>
