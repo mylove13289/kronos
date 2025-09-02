@@ -4,7 +4,8 @@ from pathlib import Path
 Config = {
     "REPO_PATH": Path(__file__).parent.resolve(),
     "MODEL_PATH_local": "/Users/longquan/Documents/git/py/",
-    "MODEL_PATH": "/Users/longquan/Documents/git/py/",
+    "MODEL_PATH_server": "/home/admin/software/",
+    "MODEL_PATH":"",
     "SYMBOL": 'x',
     "INTERVAL": 'x',
     "HIST_POINTS": 360,

@@ -309,6 +309,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Update predictions with custom symbol and interval')
     parser.add_argument('--symbol', type=str ,default='BTCUSDT', help='Trading symbol (e.g., BTCUSDT, ETHUSDT)')
     parser.add_argument('--interval', type=str ,default='15m', help='Kline interval (e.g., 15m, 1h, 4h)')
+    parser.add_argument('--env', type=str ,default='local', help='local,server')
+
     return parser.parse_args()
 
 
@@ -322,6 +324,13 @@ if __name__ == '__main__':
     # Use command line arguments if provided, otherwise use defaults
     symbol = args.symbol
     interval = args.interval
+    evn = args.env
+
+    if evn == 'server':
+        Config["MODEL_PATH"] = Config["MODEL_PATH_server"]
+    if evn == 'local':
+        Config["MODEL_PATH"] = Config["MODEL_PATH_local"]
+
 
     if interval == '1h':
         Config['HIST_POINTS'] = 360
