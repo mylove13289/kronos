@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Kronos Live Forecast
+  </title>
+  <link href="img/logo.png" rel="icon" type="image/png"/>
+  <link href="style.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Roboto+Slab:wght@400;700&amp;display=swap" rel="stylesheet"/>
+ </head>
+ <body>
+  <!--
+    <header>
+        <div class="container">
+            <h1 class="project-title">Kronos: Live Probabilistic Forecast</h1>
+            <p class="subtitle">A Demo of "Kronos: A Foundation Model for the Language of Financial Markets"</p>
+            <a href="https://github.com/shiyu-coder/Kronos" target="_blank" class="repo-link">View Project on GitHub</a>
+        </div>
+    </header>
+    -->
+  <main class="container">
+   <!-- Section 1: The Live Dashboard -->
+   <section id="live-dashboard">
+    <h2>
+     实时 BTC/USDT 预测仪表盘
+    </h2>
+    <div class="metadata">
+     <span>
+      Last Updated:
+      <strong id="update-time">
+       2025-09-02 08:28:26
+      </strong>
+     </span>
+     <span>
+      Data Source: Binance | Interval: 15minute
+     </span>
+    </div>
+    <div class="metrics-container">
+     <div class="metric-card">
+      <h3>
+       上涨概率（未来 24 小时）
+      </h3>
+      <p class="metric-value" id="upside-prob">
+       100.0%
+      </p>
+      <div class="metric-desc">
+       该模型对 24 小时内的价格将高于最后已知价格的信心。
+      </div>
+     </div>
+     <div class="metric-card">
+      <h3>
+       波动率放大（未来 24 小时）
+      </h3>
+      <p class="metric-value" id="vol-amp-prob">
+       30.0%
+      </p>
+      <div class="metric-desc">
+       未来 24 小时预测波动率超过近期历史波动率的概率。
+      </div>
+     </div>
+    </div>
+    <div class="chart-wrapper">
+     <h3>
+      24小时概率预报
+     </h3>
+     <p>
+      下图显示了历史价格（蓝色）和概率预测（橙色）。橙色线是多次蒙特卡洛模拟的平均值，阴影区域代表预测结果的全部范围，表明预测的不确定性。
+     </p>
+     <div class="container-list">
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_08_28_26.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_08_14_33.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_08_00_42.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_07_46_44.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_07_32_45.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_07_18_46.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_07_04_55.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_06_51_10.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_06_37_14.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_06_23_06.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_06_09_11.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_05_55_22.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_05_41_34.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_05_28_00.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_05_14_22.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_05_00_44.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_04_46_56.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_04_33_06.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_04_19_14.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_04_05_16.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_03_51_18.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_03_37_24.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_03_23_30.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_03_09_34.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_02_55_41.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_02_41_51.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_02_27_57.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_02_14_04.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_02_00_12.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_01_46_33.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_01_32_18.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_01_18_41.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_01_04_45.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_00_50_49.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_00_36_49.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_00_22_49.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_02_00_08_42.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_23_54_43.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_23_40_46.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_23_26_48.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_23_12_52.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_22_58_53.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_22_44_41.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_22_30_36.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_22_16_30.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_22_02_23.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_21_48_20.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_21_34_17.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_21_21_15.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_21_08_17.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_20_55_21.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_20_42_17.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_20_28_28.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_20_15_25.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_20_02_20.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_19_48_28.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_19_36_25.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_19_22_25.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_19_08_02.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_18_53_34.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_18_39_03.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_18_24_29.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_18_09_55.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_17_55_14.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_17_40_38.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_17_25_59.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_17_11_25.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_16_56_45.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_16_42_10.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_16_27_32.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_16_13_01.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_15_58_24.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_14_32_58.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_14_17_59.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_14_03_23.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_13_48_48.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_13_34_20.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_13_19_47.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_13_05_16.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_12_53_16.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_12_41_20.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_12_29_22.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_12_17_17.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_12_05_19.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_11_53_19.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_11_41_16.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_11_28_16.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_11_14_10.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_10_56_55.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_10_43_42.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_10_30_30.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_10_14_55.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_09_57_13.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_09_42_42.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_09_01_09_27_31.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_22_07_45.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_21_54_15.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_21_24_39.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_21_21_32.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_21_07_48.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_21_04_24.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_20_55_26.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_20_32_53.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_20_19_23.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_20_06_06.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_19_52_45.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_19_39_29.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_19_26_12.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_19_12_58.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_18_59_48.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_18_46_26.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_18_33_09.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_18_20_07.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_18_06_53.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_17_53_43.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_17_40_28.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_17_27_22.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_17_14_23.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_17_01_30.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_16_48_14.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_16_35_08.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_16_21_47.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_16_08_33.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_15_55_22.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_15_42_17.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_15_29_06.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_15_15_55.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_15_02_43.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_14_49_24.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_14_36_14.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_14_22_49.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_14_09_33.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_13_56_16.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_13_43_04.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_13_29_44.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_13_16_21.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_13_02_58.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_12_49_36.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_12_36_08.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_12_22_59.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_12_09_40.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_11_56_18.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_11_43_04.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_11_29_42.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_11_16_21.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_11_03_06.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_10_49_52.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_10_36_47.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_10_23_36.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_10_10_22.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_09_56_59.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_09_43_47.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_09_30_30.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_09_17_12.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_09_03_42.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_08_50_23.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_08_37_04.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_08_23_39.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_08_11_51.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_08_00_05.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_07_48_21.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_07_36_27.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_07_24_28.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_07_12_32.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_07_00_05.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_06_47_17.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_06_35_16.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_06_23_19.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_06_11_26.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_05_59_22.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_05_47_20.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_05_35_21.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_05_23_21.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_05_11_30.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_04_59_28.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_04_46_47.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_04_33_32.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_04_21_41.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_04_10_01.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_03_57_04.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_03_43_40.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_03_32_10.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_03_19_57.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_03_08_11.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_02_56_23.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_02_44_36.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_02_33_03.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_02_20_49.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_02_07_59.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_01_55_55.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_01_43_56.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_01_32_05.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_01_19_11.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_01_07_26.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_00_55_45.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_00_43_41.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_00_31_53.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_00_20_12.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_31_00_08_19.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_23_56_36.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_23_44_48.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_23_32_54.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_23_20_43.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_23_08_46.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_22_56_40.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_22_44_34.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_22_32_43.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_22_20_46.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_22_08_47.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_21_56_37.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_21_44_51.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_21_32_57.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_21_20_57.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_21_09_06.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_20_57_24.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_20_45_26.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_20_33_35.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_20_21_33.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_20_09_07.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_19_57_26.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_19_45_35.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_19_33_38.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_19_21_23.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_19_08_35.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_18_55_45.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_18_42_49.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_18_30_02.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_18_17_05.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_18_04_17.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_17_51_20.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_17_38_37.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_17_26_47.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_17_14_22.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_17_01_28.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_16_48_33.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_16_35_59.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_16_24_06.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_16_11_59.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_15_59_32.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_15_47_00.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_15_34_57.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_15_22_58.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_15_11_05.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_14_59_12.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_14_47_28.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_14_35_53.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_14_24_21.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_14_12_44.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_14_00_56.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_13_48_39.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_13_36_57.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_13_24_55.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_13_12_54.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_13_00_32.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_12_48_45.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_12_36_27.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_12_24_26.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_12_12_03.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_11_59_44.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_11_47_18.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_11_34_52.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_11_22_27.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_11_10_06.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_10_57_53.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_10_45_40.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_10_33_26.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_10_21_08.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_10_08_51.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_09_56_40.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_09_44_38.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_09_32_22.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_09_20_01.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_09_07_42.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_08_55_23.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_08_43_01.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_08_30_50.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_08_18_51.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_08_06_40.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_07_54_24.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_07_42_08.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_07_29_42.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_07_17_19.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_07_05_06.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_06_52_52.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_06_40_29.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_06_28_12.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_06_15_56.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_06_03_37.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_05_51_17.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_05_39_00.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_05_26_39.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_05_14_43.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_05_02_33.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_04_50_18.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_04_38_39.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_04_26_21.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_04_14_49.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_04_02_39.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_03_50_14.png"/>
+      </div>
+      <div class="chart-container">
+       <img class="chart-img" src="img/BTCUSDT/15m/prediction_chart_2025_08_30_03_37_44.png"/>
+      </div>
+     </div>
+    </div>
+   </section>
+   <!-- Section 2: Methodology -->
+   <section id="methodology">
+    <h2>
+     Methodology Overview
+    </h2>
+    <p>
+     This demo showcases the forecasting results of
+     <strong>
+      Kronos
+     </strong>
+     , a foundation model pre-trained on the "language" of financial markets. The predictions are generated using the following process:
+    </p>
+    <ul>
+     <li>
+      <strong>
+       Model:
+      </strong>
+      The `Kronos-base` (102.3M parameters) model is used to autoregressively predict future K-line data.
+     </li>
+     <li>
+      <strong>
+       Data Context:
+      </strong>
+      The model uses the last 360 hours (~15 days) of BTC/USDT 1h K-line data from Binance as context for each new prediction.
+     </li>
+     <li>
+      <strong>
+       Probabilistic Forecasting:
+      </strong>
+      We employ Monte Carlo sampling (N=30 paths) to generate a distribution of possible future price trajectories, not just a single point forecast.
+     </li>
+     <li>
+      <strong>
+       Derived Insights:
+      </strong>
+      The resulting distribution is analyzed to produce the mean forecast (solid line), the uncertainty range (shaded area), and the key probability metrics shown above.
+     </li>
+    </ul>
+   </section>
+   <!-- Section 3: About the Project
+        <section id="about-project">
+            <h2>About The Kronos Project</h2>
+            <p>Kronos is the first open-source foundation model for financial candlesticks (K-lines), trained on data from over 45 global exchanges. It is designed to serve as a unified model for diverse quantitative finance tasks. </p>
+            <div class="project-links">
+                <a href="https://github.com/shiyu-coder/Kronos" class="btn btn-primary" target="_blank">View on GitHub</a>
+                <a href="https://arxiv.org/abs/2508.02739" class="btn btn-secondary" target="_blank">Read the Paper</a>
+            </div>
+        </section>
+         -->
+  </main>
+  <footer>
+   <div class="container">
+    <p>
+     本网站核心算法自于
+     <a href="https://github.com/shiyu-coder/Kronos" target="_blank">
+      Kronos
+     </a>
+    </p>
+   </div>
+  </footer>
+ </body>
+</html>
