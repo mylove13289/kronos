@@ -7,6 +7,8 @@ from qlib.config import REG_CN
 from qlib.data import D
 from qlib.data.dataset.loader import QlibDataLoader
 from tqdm import trange
+from sqlalchemy import create_engine, text
+from db_config import DB_CONFIG
 
 from config import Config
 
@@ -27,7 +29,51 @@ class QlibDataPreprocessor:
         print("Initializing Qlib...")
         qlib.init(provider_uri=self.config.qlib_data_path, region=REG_CN)
 
+
+
     def load_qlib_data(self):
+
+        engine = create_engine(
+            f"mysql+pymysql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@"
+            f"{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
+        )
+
+        #symbolList = ["BNBUSDT","BTCUSDT","ETHUSDT","SOLUSDT"]
+        symbolList = ["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","LTCUSDT","DOGEUSDT","XRPUSDT","LINKUSDT","OPUSDT","AVAXUSDT","BCHUSDT","UNIUSDT"]
+        #循环symbolList
+        for symbol in symbolList:
+            print(f'start_fetch_data,{ symbol}')
+
+            # 构建SQL查询语句
+            query = "SELECT * FROM new_kline_data WHERE 1=1"
+            params = {}
+
+            if 1:
+                query += " AND ts_code = :symbol"
+                params['symbol'] = 'BTCUSDT'
+
+            if 1:
+                query += " AND iinterval = :iinterval"
+                params['iinterval'] = '15m'
+
+            query += " ORDER BY id asc"
+
+            # 执行查询并返回DataFrame
+            df = pd.read_sql_query(text(query), engine, params=params)
+            #删除df的id
+            df.drop(columns=['id',"ts_code","iinterval","deleted","gmt_create","gmt_update","change","pct_chg","amount","pre_close"], inplace=True)
+            #df.rename(columns={'amount': 'amt'}, inplace=True)
+            df['amt'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4 * df['vol']
+            #把df中trade_date类型设置为datetime
+            df['datetime'] = pd.to_datetime(df['trade_date'])
+            #df的ts_code 设置为index
+            df.set_index('datetime', inplace=True)
+            self.data[symbol] = df
+            print(f'end_fetch_data,{ symbol}')
+
+
+
+    def _load_qlib_data(self):
         """
         Loads raw data from Qlib, processes it symbol by symbol, and stores
         it in the `self.data` attribute.
@@ -41,9 +87,10 @@ class QlibDataPreprocessor:
         end_index = cal.searchsorted(pd.Timestamp(self.config.dataset_end_time))
         real_start_time = cal[start_index - self.config.lookback_window]
 
-        if cal[end_index] != pd.Timestamp(self.config.dataset_end_time):
-            end_index -= 1
-        real_end_time = cal[end_index + self.config.predict_window]
+        #if cal[end_index] != pd.Timestamp(self.config.dataset_end_time):
+        #    end_index -= 1
+        #real_end_time = cal[end_index + self.config.predict_window]
+        real_end_time = cal[min(end_index + self.config.predict_window, len(cal) - 1)]
 
         # Load data using Qlib's data loader.
         data_df = QlibDataLoader(config=data_fields_qlib).load(
@@ -99,6 +146,8 @@ class QlibDataPreprocessor:
             train_data[symbol] = symbol_df[train_mask]
             val_data[symbol] = symbol_df[val_mask]
             test_data[symbol] = symbol_df[test_mask]
+            print(f'prepare_dataset,{ symbol}')
+
 
         # Save the datasets using pickle.
         os.makedirs(self.config.dataset_path, exist_ok=True)

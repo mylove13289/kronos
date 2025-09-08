@@ -14,8 +14,8 @@ class Config:
         self.instrument = 'csi300'
 
         # Overall time range for data loading from Qlib.
-        self.dataset_begin_time = "2011-01-01"
-        self.dataset_end_time = '2025-06-05'
+        self.dataset_begin_time = "2023-01-01"
+        self.dataset_end_time = '2025-09-01'
 
         # Sliding window parameters for creating samples.
         self.lookback_window = 90  # Number of past time steps for input.
@@ -32,20 +32,34 @@ class Config:
         # =================================================================
         # Note: The validation/test set starts earlier than the training/validation set ends
         # to account for the `lookback_window`.
-        self.train_time_range = ["2011-01-01", "2022-12-31"]
-        self.val_time_range = ["2022-09-01", "2024-06-30"]
-        self.test_time_range = ["2024-04-01", "2025-06-05"]
-        self.backtest_time_range = ["2024-07-01", "2025-06-05"]
+        self.train_time_range = ["2023-01-01", "2025-09-01"]
+        self.val_time_range = ["2023-01-01", "2025-09-01"]
+        self.test_time_range = ["2023-01-01", "2025-09-01"]
+        self.backtest_time_range = ["2023-01-01", "2025-09-01"]
+        #self.use_comet = False
 
         # TODO: Directory to save the processed, pickled datasets.
-        self.dataset_path = "./data/processed_datasets"
+        self.dataset_path = "/Users/longquan/Documents/git/py/Kronos/data/processed_datasets"
 
         # =================================================================
         # Training Hyperparameters
         # =================================================================
         self.clip = 5.0  # Clipping value for normalized data to prevent outliers.
-
-        self.epochs = 30
+        """
+        定义训练轮数：
+        epochs
+        指定了完整遍历训练数据集的次数
+        在你的配置中设置为
+        30，意味着模型将对整个训练数据集进行30次完整的训练
+        控制训练时长：
+        每个
+        epoch
+        包含对所有训练样本的一次完整处理
+        更多的
+        epochs
+        通常意味着更长的训练时间和可能更好的模型性能（但也可能导致过拟合）
+        在训练循环中的使用："""
+        self.epochs = 2
         self.log_interval = 100  # Log training status every N batches.
         self.batch_size = 50  # Batch size per GPU.
 
@@ -72,7 +86,7 @@ class Config:
         # =================================================================
         # Experiment Logging & Saving
         # =================================================================
-        self.use_comet = True # Set to False if you don't want to use Comet ML
+        self.use_comet = False # Set to False if you don't want to use Comet ML
         self.comet_config = {
             # It is highly recommended to load secrets from environment variables
             # for security purposes. Example: os.getenv("COMET_API_KEY")
@@ -85,21 +99,21 @@ class Config:
 
         # Base directory for saving model checkpoints and results.
         # Using a general 'outputs' directory is a common practice.
-        self.save_path = "./outputs/models"
+        self.save_path = "/Users/longquan/Documents/git/py/Kronos/data/outputs/models"
         self.tokenizer_save_folder_name = 'finetune_tokenizer_demo'
         self.predictor_save_folder_name = 'finetune_predictor_demo'
         self.backtest_save_folder_name = 'finetune_backtest_demo'
 
         # Path for backtesting results.
-        self.backtest_result_path = "./outputs/backtest_results"
+        self.backtest_result_path = "/Users/longquan/Documents/git/py/Kronos/data/outputs/backtest_results"
 
         # =================================================================
         # Model & Checkpoint Paths
         # =================================================================
         # TODO: Update these paths to your pretrained model locations.
         # These can be local paths or Hugging Face Hub model identifiers.
-        self.pretrained_tokenizer_path = "path/to/your/Kronos-Tokenizer-base"
-        self.pretrained_predictor_path = "path/to/your/Kronos-small"
+        self.pretrained_tokenizer_path = "/Users/longquan/Documents/git/py/NeoQuasar/Kronos-Tokenizer-base"
+        self.pretrained_predictor_path = "/Users/longquan/Documents/git/py/NeoQuasar/Kronos-small"
 
         # Paths to the fine-tuned models, derived from the save_path.
         # These will be generated automatically during training.

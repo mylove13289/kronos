@@ -19,8 +19,6 @@ from model import KronosTokenizer, Kronos, KronosPredictor
 from config import Config
 
 
-
-
 def load_model():
     """Loads the Kronos model and tokenizer."""
     print("Loading Kronos model...")
@@ -122,7 +120,7 @@ def calculate_metrics(hist_df, close_preds_df, v_close_preds_df):
     return upside_prob, vol_amp_prob
 
 
-def create_plot(hist_df, close_preds_df, volume_preds_df,symbol,interval):
+def create_plot(hist_df, close_preds_df, volume_preds_df, symbol, interval):
     """Generates and saves a comprehensive forecast chart."""
     print("Generating comprehensive forecast chart...")
     # plt.style.use('seaborn-v0_8-whitegrid')
@@ -138,10 +136,13 @@ def create_plot(hist_df, close_preds_df, volume_preds_df,symbol,interval):
     ax1.plot(hist_time, hist_df['close'], color='royalblue', label='Historical Price', linewidth=1.5)
     mean_preds = close_preds_df.mean(axis=1)
     ax1.plot(pred_time, mean_preds, color='darkorange', linestyle='-', label='Mean Forecast')
-    ax1.fill_between(pred_time, close_preds_df.min(axis=1), close_preds_df.max(axis=1), color='darkorange', alpha=0.2, label='Forecast Range (Min-Max)')
+    ax1.fill_between(pred_time, close_preds_df.min(axis=1), close_preds_df.max(axis=1), color='darkorange', alpha=0.2,
+                     label='Forecast Range (Min-Max)')
     # 生成一个当前时间的字符串，然后拼接进title
-    ax1.set_title(f'{Config["SYMBOL"]} Probabilistic Price & Volume Forecast (Next {interval}) - Build Time:{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', fontsize=16, weight='bold')
-    #ax1.set_title(f'{Config["SYMBOL"]} Probabilistic Price & Volume Forecast (Next 15 minute)', fontsize=14, weight='bold')
+    ax1.set_title(
+        f'{Config["SYMBOL"]} Probabilistic Price & Volume Forecast (Next {interval}) - Build Time:{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
+        fontsize=16, weight='bold')
+    # ax1.set_title(f'{Config["SYMBOL"]} Probabilistic Price & Volume Forecast (Next 15 minute)', fontsize=14, weight='bold')
     ax1.set_ylabel('Price (USDT)')
     ax1.legend()
     ax1.grid(True, which='both', linestyle='--', linewidth=0.5)
@@ -159,16 +160,14 @@ def create_plot(hist_df, close_preds_df, volume_preds_df,symbol,interval):
         ax.tick_params(axis='x', rotation=30)
 
     fig.tight_layout()
-    chart_path = Config["REPO_PATH"] / f'img/{symbol}/{interval}' / f'prediction_chart_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}.png'
+    chart_path = Config[
+                     "REPO_PATH"] / f'img/{symbol}/{interval}' / f'prediction_chart_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}.png'
     fig.savefig(chart_path, dpi=120)
     plt.close(fig)
     print(f"Chart saved to: {chart_path}")
 
 
-
-
-
-def update_html(upside_prob, vol_amp_prob,symbol,interval):
+def update_html(upside_prob, vol_amp_prob, symbol, interval):
     """
     Updates the btc_index.html file with the latest metrics and timestamp.
     Uses BeautifulSoup to parse and modify HTML.
@@ -230,8 +229,7 @@ def main_task(model, symbol, interval):
     print("\n" + "=" * 60 + f"\nStarting update task at {datetime.now(timezone.utc)}\n" + "=" * 60)
 
     # Update Config with command line arguments if provided
-    Config["SYMBOL"] = symbol
-    Config["INTERVAL"] = interval
+
 
     df_full = fetch_binance_data(symbol, interval)
     df_for_model = df_full.iloc[:-1]
@@ -242,11 +240,11 @@ def main_task(model, symbol, interval):
     hist_df_for_metrics = df_for_model.tail(Config["VOL_WINDOW"])
 
     upside_prob, vol_amp_prob = calculate_metrics(hist_df_for_metrics, close_preds, v_close_preds)
-    create_plot(hist_df_for_plot, close_preds, volume_preds,symbol,interval)
-    update_html(upside_prob, vol_amp_prob,symbol,interval)
+    create_plot(hist_df_for_plot, close_preds, volume_preds, symbol, interval)
+    update_html(upside_prob, vol_amp_prob, symbol, interval)
 
     commit_message = f"Auto-update forecast for {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC"
-    git_commit_and_push(commit_message,symbol, interval)
+    git_commit_and_push(commit_message, symbol, interval)
 
     # --- 新增的内存清理步骤 ---
     # 显式删除大的DataFrame对象，帮助垃圾回收器
@@ -283,15 +281,14 @@ def run_scheduler(model, symbol, interval):
             time.sleep(60)
 
 
-
-def git_commit_and_push(commit_message,symbol, interval):
+def git_commit_and_push(commit_message, symbol, interval):
     """Adds, commits, and pushes specified files to the Git repository. BTCUSDT"""
     print("Performing Git operations...")
     try:
         os.chdir(Config["REPO_PATH"])
-        #git pull
+        # git pull
         subprocess.run(['git', 'pull'], check=True, capture_output=True, text=True)
-        subprocess.run(['git', 'add', f'{symbol}_index_{ interval}.html'], check=True, capture_output=True, text=True)
+        subprocess.run(['git', 'add', f'{symbol}_index_{interval}.html'], check=True, capture_output=True, text=True)
         # 添加 img/btc 目录下的所有文件
         subprocess.run(['git', 'add', f'img/{symbol}/{interval}'], check=True, capture_output=True, text=True)
         subprocess.run(['git', 'commit', '-m', commit_message], check=True, capture_output=True, text=True)
@@ -304,33 +301,35 @@ def git_commit_and_push(commit_message,symbol, interval):
         else:
             print(f"A Git error occurred:\n--- STDOUT ---\n{e.stdout}\n--- STDERR ---\n{e.stderr}")
 
+
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description='Update predictions with custom symbol and interval')
-    parser.add_argument('--symbol', type=str ,default='BTCUSDT', help='Trading symbol (e.g., BTCUSDT, ETHUSDT)')
-    parser.add_argument('--interval', type=str ,default='15m', help='Kline interval (e.g., 15m, 1h, 4h)')
-    parser.add_argument('--env', type=str ,default='local', help='local,server')
+    parser.add_argument('--symbol', type=str, default='BTCUSDT', help='Trading symbol (e.g., BTCUSDT, ETHUSDT)')
+    parser.add_argument('--interval', type=str, default='15m', help='Kline interval (e.g., 15m, 1h, 4h)')
+    parser.add_argument('--env', type=str, default='local', help='local,server')
 
     return parser.parse_args()
 
 
-
 if __name__ == '__main__':
-    #model_path = Path(Config["MODEL_PATH"])
-    #model_path.mkdir(parents=True, exist_ok=True)
+    # model_path = Path(Config["MODEL_PATH"])
+    # model_path.mkdir(parents=True, exist_ok=True)
 
-    #git_commit_and_push('test-commit')
+    # git_commit_and_push('test-commit')
     args = parse_args()
     # Use command line arguments if provided, otherwise use defaults
     symbol = args.symbol
     interval = args.interval
     evn = args.env
 
+    Config["SYMBOL"] = symbol
+    Config["INTERVAL"] = interval
+
     if evn == 'server':
         Config["MODEL_PATH"] = Config["MODEL_PATH_server"]
     if evn == 'local':
         Config["MODEL_PATH"] = Config["MODEL_PATH_local"]
-
 
     if interval == '1h':
         Config['HIST_POINTS'] = 360
@@ -340,4 +339,4 @@ if __name__ == '__main__':
 
     loaded_model = load_model()
     main_task(loaded_model, symbol, interval)  # Run once on startu
-    run_scheduler(loaded_model,symbol, interval)  # Start the schedule
+    run_scheduler(loaded_model, symbol, interval)  # Start the schedule

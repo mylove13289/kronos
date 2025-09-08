@@ -57,6 +57,8 @@ class QlibDataset(Dataset):
 
             if num_samples > 0:
                 # Generate time features and store them directly in the dataframe.
+                #df所有的列
+                print(f'd都有哪些列:{df.columns}')
                 df['minute'] = df['datetime'].dt.minute
                 df['hour'] = df['datetime'].dt.hour
                 df['weekday'] = df['datetime'].dt.weekday
