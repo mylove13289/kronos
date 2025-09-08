@@ -8,8 +8,9 @@ import pandas as pd
 from db_config import DB_CONFIG
 from binance.client import Client
 from db_config import DB_CONFIG
+import sys
 
-def kline(symbol,startDate,endDate):
+def kline(symbol,iinterval,startDate,endDate):
     """
     def get_historical_klines(
         self,
@@ -25,7 +26,7 @@ def kline(symbol,startDate,endDate):
     :return:
     """
     client = Client()
-    klines = client.get_historical_klines(symbol, "15m", startDate, endDate)
+    klines = client.get_historical_klines(symbol, iinterval, startDate, endDate)
 
     #klines = client.get_klines(symbol=symbol, interval=interval, limit=limit)
 
@@ -49,7 +50,7 @@ def kline(symbol,startDate,endDate):
     df['gmt_create'] = datetime.now()
     df['gmt_update'] = datetime.now()
     # 使用传入的interval参数
-    df['iinterval'] = '15m'
+    df['iinterval'] = iinterval
     df['ts_code'] = symbol
     #DOGEUSDT，XRPUSDT,LINKUSDT,OPUSDT,AVAXUSDT,BCHUSDT,UNIUSDT,LTCUSDT,UNIUSDT
 
@@ -81,7 +82,7 @@ def kline(symbol,startDate,endDate):
     print(f"K线数据已保存到MySQL")
 
 
-def kline_loop(symbol,start_date, end_date):
+def kline_loop(symbol,iinterval,start_date, end_date):
     """
     循环调用kline函数，每次处理一天的数据
     :param start_date: 开始日期，格式 'YYYY-MM-DD'
@@ -101,7 +102,7 @@ def kline_loop(symbol,start_date, end_date):
         print(f"正在处理{symbol} :  {current_date_str} 的数据...")
 
         # 调用kline函数处理当天数据
-        kline(symbol,current_date_str, next_date_str)
+        kline(symbol,iinterval,current_date_str, next_date_str)
 
         # 移动到下一天
         current_date = next_date
@@ -111,8 +112,10 @@ if __name__ == "__main__":
     # 开始时间和结束时间
     start_date = '2023-01-01'
     end_date = '2025-09-01'
-    symbol = 'UNIUSDT'
+    #symbol = 'BTCUSDT'
+    symbol = sys.argv[1]
+    iinterval = sys.argv[2]
     # BTCUSDT,ETHUSDT , BNBUSDT,SOLUSDT，LTCUSDT, DOGEUSDT，XRPUSDT,LINKUSDT,OPUSDT,AVAXUSDT,BCHUSDT,UNIUSDT,
 
     # 循环调用kline函数
-    kline_loop(symbol,start_date, end_date)
+    kline_loop(symbol,iinterval,start_date, end_date)
