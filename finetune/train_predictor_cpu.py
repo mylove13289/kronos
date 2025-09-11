@@ -267,7 +267,7 @@ def main(config: dict):
 
 
 if __name__ == '__main__':
-    # Usage: torchrun --standalone --nproc_per_node=NUM_CORES train_predictor_cpu.py
+    # Usage: torchrun --standalone --nproc_per_node=1 train_predictor_cpu.py
     if "WORLD_SIZE" not in os.environ:
         raise RuntimeError("This script must be launched with `torchrun`.")
 
