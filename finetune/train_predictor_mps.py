@@ -304,6 +304,7 @@ def main(config: dict):
 
 
 if __name__ == '__main__':
+    # 使用mps 单进程训练（最简单）
     # Usage: torchrun --standalone --nproc_per_node=1 train_predictor_mps.py
     if "WORLD_SIZE" not in os.environ:
         raise RuntimeError("This script must be launched with `torchrun`.")
