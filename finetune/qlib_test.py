@@ -300,7 +300,7 @@ def generate_predictions(config: dict, test_data: dict) -> dict[str, pd.DataFram
 def main():
     """Main function to set up config, run inference, and execute backtesting."""
     parser = argparse.ArgumentParser(description="Run Kronos Inference and Backtesting")
-    parser.add_argument("--device", type=str, default="cuda:1", help="Device for inference (e.g., 'cuda:0', 'cpu')")
+    parser.add_argument("--device", type=str, default="cuda:0", help="Device for inference (e.g., 'cuda:0', 'cpu')")
     args = parser.parse_args()
 
     # --- 1. Configuration Setup ---

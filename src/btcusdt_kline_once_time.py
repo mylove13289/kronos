@@ -110,11 +110,12 @@ def kline_loop(symbol,iinterval,start_date, end_date):
 
 if __name__ == "__main__":
     # 开始时间和结束时间
-    start_date = '2023-01-01'
-    end_date = '2025-09-01'
-    #symbol = 'BTCUSDT'
-    symbol = sys.argv[1]
-    iinterval = sys.argv[2]
+    start_date = '2021-05-18'
+    end_date = '2025-09-10'
+    symbol = 'ETHUSDT'
+    iinterval = '5m'
+    #symbol = sys.argv[1]
+    #iinterval = sys.argv[2]
     # BTCUSDT,ETHUSDT , BNBUSDT,SOLUSDT，LTCUSDT, DOGEUSDT，XRPUSDT,LINKUSDT,OPUSDT,AVAXUSDT,BCHUSDT,UNIUSDT,
 
     # 循环调用kline函数

@@ -222,7 +222,7 @@ def main(config: dict):
     rank = 0
     world_size = 1
     local_rank = 0
-    device = torch.device("cpu")
+    device = torch.device("mps:0")
 
     set_seed(config['seed'], rank)
 

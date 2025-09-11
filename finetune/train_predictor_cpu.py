@@ -13,14 +13,12 @@ import comet_ml
 
 # Ensure project root is in path
 sys.path.append('../')
-
-
 from config import Config
 from dataset import QlibDataset
 from model.kronos import KronosTokenizer, Kronos
 # Import shared utilities
 from utils.training_utils import (
-    #setup_ddp,
+    setup_ddp,
     cleanup_ddp,
     set_seed,
     get_model_size,
@@ -28,20 +26,9 @@ from utils.training_utils import (
 )
 
 
-def setup_ddp():
-    """
-    Simplified setup for single GPU.
-    """
-    rank = 0
-    world_size = 1
-    local_rank = 0
-    torch.cuda.set_device(local_rank)
-    return rank, world_size, local_rank
-
-
 def create_dataloaders(config: dict, rank: int, world_size: int):
     """
-    Creates and returns dataloaders for training and validation (single GPU).
+    Creates and returns distributed dataloaders for training and validation.
 
     Args:
         config (dict): A dictionary of configuration parameters.
@@ -51,39 +38,23 @@ def create_dataloaders(config: dict, rank: int, world_size: int):
     Returns:
         tuple: (train_loader, val_loader, train_dataset, valid_dataset).
     """
-    print(f"Creating dataloaders...")
+    print(f"[Rank {rank}] Creating distributed dataloaders...")
     train_dataset = QlibDataset('train')
     valid_dataset = QlibDataset('val')
-    print(f"Train dataset size: {len(train_dataset)}, Validation dataset size: {len(valid_dataset)}")
+    print(f"[Rank {rank}] Train dataset size: {len(train_dataset)}, Validation dataset size: {len(valid_dataset)}")
+
+    train_sampler = DistributedSampler(train_dataset, num_replicas=world_size, rank=rank, shuffle=True)
+    val_sampler = DistributedSampler(valid_dataset, num_replicas=world_size, rank=rank, shuffle=False)
 
     train_loader = DataLoader(
-        train_dataset,
-        batch_size=config['batch_size'],
-        shuffle=True,
-        num_workers=config.get('num_workers', 2),
-        pin_memory=True,
-        drop_last=True
+        train_dataset, batch_size=config['batch_size'], sampler=train_sampler,
+        num_workers=config.get('num_workers', 2), pin_memory=False, drop_last=True
     )
-
     val_loader = DataLoader(
-        valid_dataset,
-        batch_size=config['batch_size'],
-        shuffle=False,
-        num_workers=config.get('num_workers', 2),
-        pin_memory=True,
-        drop_last=False
+        valid_dataset, batch_size=config['batch_size'], sampler=val_sampler,
+        num_workers=config.get('num_workers', 2), pin_memory=False, drop_last=False
     )
     return train_loader, val_loader, train_dataset, valid_dataset
-
-
-def set_sampler_epoch(loader, epoch):
-    """安全地设置采样器的epoch"""
-    if hasattr(loader, 'sampler'):
-        sampler = loader.sampler
-        if hasattr(sampler, 'set_epoch'):
-            sampler.set_epoch(epoch)
-            return True
-    return False
 
 
 def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_size):
@@ -93,7 +64,7 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
     start_time = time.time()
     if rank == 0:
         effective_bs = config['batch_size'] * world_size
-        print(f"Effective BATCHSIZE per GPU: {config['batch_size']}, Total: {effective_bs}")
+        print(f"Effective BATCHSIZE per CPU core: {config['batch_size']}, Total: {effective_bs}")
 
     train_loader, val_loader, train_dataset, valid_dataset = create_dataloaders(config, rank, world_size)
 
@@ -116,17 +87,14 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
     for epoch_idx in range(config['epochs']):
         epoch_start_time = time.time()
         model.train()
-
-        # 使用辅助函数安全地设置采样器epoch
-        if not set_sampler_epoch(train_loader, epoch_idx) and world_size > 1:
-            print(f"[Warning] Could not set epoch for sampler in epoch {epoch_idx}")
+        train_loader.sampler.set_epoch(epoch_idx)
 
         train_dataset.set_epoch_seed(epoch_idx * 10000 + rank)
         valid_dataset.set_epoch_seed(0)
 
         for i, (batch_x, batch_x_stamp) in enumerate(train_loader):
-            batch_x = batch_x.squeeze(0).to(device, non_blocking=True)
-            batch_x_stamp = batch_x_stamp.squeeze(0).to(device, non_blocking=True)
+            batch_x = batch_x.squeeze(0).to(device, non_blocking=False)
+            batch_x_stamp = batch_x_stamp.squeeze(0).to(device, non_blocking=False)
 
             # Tokenize input data on-the-fly
             with torch.no_grad():
@@ -138,9 +106,7 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
 
             # Forward pass and loss calculation
             logits = model(token_in[0], token_in[1], batch_x_stamp[:, :-1, :])
-            # 修复：确保正确访问模型的head
-            actual_model = model.module if hasattr(model, 'module') else model
-            loss, s1_loss, s2_loss = actual_model.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
+            loss, s1_loss, s2_loss = model.module.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
 
             # Backward pass and optimization
             optimizer.zero_grad()
@@ -171,29 +137,26 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
         val_batches_processed_rank = 0
         with torch.no_grad():
             for batch_x, batch_x_stamp in val_loader:
-                batch_x = batch_x.squeeze(0).to(device, non_blocking=True)
-                batch_x_stamp = batch_x_stamp.squeeze(0).to(device, non_blocking=True)
+                batch_x = batch_x.squeeze(0).to(device, non_blocking=False)
+                batch_x_stamp = batch_x_stamp.squeeze(0).to(device, non_blocking=False)
 
                 token_seq_0, token_seq_1 = tokenizer.encode(batch_x, half=True)
                 token_in = [token_seq_0[:, :-1], token_seq_1[:, :-1]]
                 token_out = [token_seq_0[:, 1:], token_seq_1[:, 1:]]
 
                 logits = model(token_in[0], token_in[1], batch_x_stamp[:, :-1, :])
-                actual_model = model.module if hasattr(model, 'module') else model
-                val_loss, _, _ = actual_model.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
+                val_loss, _, _ = model.module.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
 
                 tot_val_loss_sum_rank += val_loss.item()
                 val_batches_processed_rank += 1
 
-        # Reduce validation metrics - 只在多GPU模式下进行all_reduce
-        if world_size > 1:
-            val_loss_sum_tensor = torch.tensor(tot_val_loss_sum_rank, device=device)
-            val_batches_tensor = torch.tensor(val_batches_processed_rank, device=device)
-            dist.all_reduce(val_loss_sum_tensor, op=dist.ReduceOp.SUM)
-            dist.all_reduce(val_batches_tensor, op=dist.ReduceOp.SUM)
-            avg_val_loss = val_loss_sum_tensor.item() / val_batches_tensor.item() if val_batches_tensor.item() > 0 else 0
-        else:
-            avg_val_loss = tot_val_loss_sum_rank / val_batches_processed_rank if val_batches_processed_rank > 0 else 0
+        # Reduce validation metrics
+        val_loss_sum_tensor = torch.tensor(tot_val_loss_sum_rank, device=device)
+        val_batches_tensor = torch.tensor(val_batches_processed_rank, device=device)
+        dist.all_reduce(val_loss_sum_tensor, op=dist.ReduceOp.SUM)
+        dist.all_reduce(val_batches_tensor, op=dist.ReduceOp.SUM)
+
+        avg_val_loss = val_loss_sum_tensor.item() / val_batches_tensor.item() if val_batches_tensor.item() > 0 else 0
 
         # --- End of Epoch Summary & Checkpointing (Master Process Only) ---
         if rank == 0:
@@ -207,23 +170,44 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
                 save_path = f"{save_dir}/checkpoints/best_model"
-                # 修复：正确访问模型进行保存
-                actual_model = model.module if hasattr(model, 'module') else model
-                actual_model.save_pretrained(save_path)
+                model.module.save_pretrained(save_path)
                 print(f"Best model saved to {save_path} (Val Loss: {best_val_loss:.4f})")
+
+        dist.barrier()
 
     dt_result['best_val_loss'] = best_val_loss
     return dt_result
 
 
-def get_model_for_sizing(model):
-    """获取用于计算模型大小的模型对象"""
-    return model.module if hasattr(model, 'module') else model
+def setup_ddp_cpu():
+    """
+    Setup DDP for CPU training using Gloo backend
+    """
+    # Initialize the process group with gloo backend for CPU
+    dist.init_process_group(backend="gloo")
+
+    rank = dist.get_rank()
+    world_size = dist.get_world_size()
+    local_rank = rank  # For CPU, local_rank is the same as rank
+
+    return rank, world_size, local_rank
+
 
 def main(config: dict):
     """Main function to orchestrate the DDP training process."""
-    rank, world_size, local_rank = setup_ddp()
-    device = torch.device('mps:0')
+    # Use CPU-specific DDP setup
+    try:
+        rank, world_size, local_rank = setup_ddp_cpu()
+    except:
+        # Fallback if distributed training is not available
+        print("Distributed training not available, running in single process mode")
+        rank, world_size, local_rank = 0, 1, 0
+        # Initialize a fake process group for single process
+        if not dist.is_initialized():
+            dist.init_process_group(backend="gloo", rank=rank, world_size=world_size)
+
+    # Use CPU device
+    device = torch.device("cpu")
     set_seed(config['seed'], rank)
 
     save_dir = os.path.join(config['save_path'], config['predictor_save_folder_name'])
@@ -248,17 +232,23 @@ def main(config: dict):
             comet_logger.log_parameters(config)
             print("Comet Logger Initialized.")
 
+    if dist.is_initialized():
+        dist.barrier()
+
     # Model Initialization
     tokenizer = KronosTokenizer.from_pretrained(config['finetuned_tokenizer_path'])
     tokenizer.eval().to(device)
-    print(f"Tokenizer loaded: {tokenizer is not None}")
 
     model = Kronos.from_pretrained(config['pretrained_predictor_path'])
     model.to(device)
-    print(f"Model loaded: {model is not None}")
+
+    # Use DDP only if distributed training is properly initialized
+    if dist.is_initialized() and world_size > 1:
+        model = DDP(model, find_unused_parameters=False)
+    # If single process, use model directly without DDP
 
     if rank == 0:
-        print(f"Predictor Model Size: {get_model_size(get_model_for_sizing(model))}")
+        print(f"Predictor Model Size: {get_model_size(model.module if hasattr(model, 'module') else model)}")
 
     # Start Training
     dt_result = train_model(
@@ -272,13 +262,12 @@ def main(config: dict):
         print('Training finished. Summary file saved.')
         if comet_logger: comet_logger.end()
 
-    # 只在多GPU设置中清理DDP
-    if world_size > 1:
+    if dist.is_initialized():
         cleanup_ddp()
 
 
 if __name__ == '__main__':
-    # Usage: torchrun --standalone --nproc_per_node=1 train_predictory_gpu.py
+    # Usage: torchrun --standalone --nproc_per_node=NUM_CORES train_predictor_cpu.py
     if "WORLD_SIZE" not in os.environ:
         raise RuntimeError("This script must be launched with `torchrun`.")
 

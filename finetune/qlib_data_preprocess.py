@@ -24,11 +24,6 @@ class QlibDataPreprocessor:
         self.data_fields = ['open', 'close', 'high', 'low', 'volume', 'vwap']
         self.data = {}  # A dictionary to store processed data for each symbol.
 
-    def initialize_qlib(self):
-        """Initializes the Qlib environment."""
-        print("Initializing Qlib...")
-        qlib.init(provider_uri=self.config.qlib_data_path, region=REG_CN)
-
 
 
     def load_qlib_data(self):
@@ -38,8 +33,8 @@ class QlibDataPreprocessor:
             f"{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
         )
 
-        #symbolList = ["BNBUSDT","BTCUSDT","ETHUSDT","SOLUSDT"]
-        symbolList = ["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","LTCUSDT","DOGEUSDT","XRPUSDT","LINKUSDT","OPUSDT","AVAXUSDT","BCHUSDT","UNIUSDT"]
+        symbolList = ["ETHUSDT"]
+        #symbolList = ["AVAXUSDT","BCHUSDT","BNBUSDT","BTCUSDT","DOGEUSDT","ETHUSDT","LINKUSDT","LTCUSDT","OPUSDT","SOLUSDT","UNIUSDT","XRPUSDT"]
         #循环symbolList
         for symbol in symbolList:
             print(f'start_fetch_data,{ symbol}')
@@ -50,11 +45,11 @@ class QlibDataPreprocessor:
 
             if 1:
                 query += " AND ts_code = :symbol"
-                params['symbol'] = 'BTCUSDT'
+                params['symbol'] = f'{symbol}'
 
             if 1:
                 query += " AND iinterval = :iinterval"
-                params['iinterval'] = '15m'
+                params['iinterval'] = '5m'
 
             query += " ORDER BY id asc"
 
@@ -164,6 +159,6 @@ class QlibDataPreprocessor:
 if __name__ == '__main__':
     # This block allows the script to be run directly to perform data preprocessing.
     preprocessor = QlibDataPreprocessor()
-    preprocessor.initialize_qlib()
+    #preprocessor.initialize_qlib()
     preprocessor.load_qlib_data()
     preprocessor.prepare_dataset()

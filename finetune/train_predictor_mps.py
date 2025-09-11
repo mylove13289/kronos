@@ -26,6 +26,7 @@ from utils.training_utils import (
 )
 
 
+
 def create_dataloaders(config: dict, rank: int, world_size: int):
     """
     Creates and returns distributed dataloaders for training and validation.
@@ -181,10 +182,25 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
 
 def main(config: dict):
     """Main function to orchestrate the DDP training process."""
-    rank, world_size, local_rank = setup_ddp()
-    # 明确设置CUDA设备
-    torch.cuda.set_device(local_rank)
-    device = torch.device(f"cuda:{local_rank}")
+    """Main function to orchestrate the DDP training process."""
+    # 根据设备选择后端
+    if torch.cuda.is_available():
+        dist.init_process_group(backend="nccl")
+    else:
+        dist.init_process_group(backend="gloo")
+
+    rank = dist.get_rank()
+    world_size = dist.get_world_size()
+    local_rank = int(os.environ.get("LOCAL_RANK", 0))
+
+    # 确定设备
+    if torch.cuda.is_available():
+        device = torch.device(f"cuda:{local_rank}")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps:0")
+    else:
+        device = torch.device("cpu")
+
     set_seed(config['seed'], rank)
 
     save_dir = os.path.join(config['save_path'], config['predictor_save_folder_name'])
@@ -238,7 +254,7 @@ def main(config: dict):
 
 
 if __name__ == '__main__':
-    # Usage: torchrun --standalone --nproc_per_node=NUM_GPUS train_predictor.py
+    # Usage: torchrun --standalone --nproc_per_node=1 train_predictor_mps.py
     if "WORLD_SIZE" not in os.environ:
         raise RuntimeError("This script must be launched with `torchrun`.")
 

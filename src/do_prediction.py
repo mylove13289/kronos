@@ -91,7 +91,7 @@ def load_kline_data_from_db(db_config, symbol=None, iinterval=None, start_date=N
         query += " AND trade_date <= :end_date"
         params['end_date'] = end_date
 
-    query += " ORDER BY ts_code asc limit 288"
+    query += " ORDER BY ts_code asc limit 500"
 
     # 执行查询并返回DataFrame
     df = pd.read_sql_query(text(query), engine, params=params)
@@ -175,8 +175,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Kronos Model Prediction')
     parser.add_argument('--symbol', type=str, default='BTCUSDT', help='Trading pair symbol (e.g., BTCUSDT)')
     parser.add_argument('--iinterval', type=str, default='15m', help='Interval (e.g., 5m, 15m)')
-    parser.add_argument('--lookback', type=int, default=50, help='Lookback period')
-    parser.add_argument('--pred_len', type=int, default=20, help='Prediction length')
+    parser.add_argument('--lookback', type=int, default=200, help='Lookback period')
+    parser.add_argument('--pred_len', type=int, default=100, help='Prediction length')
 
     args = parser.parse_args()
 

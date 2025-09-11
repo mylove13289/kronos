@@ -32,14 +32,14 @@ class Config:
         # =================================================================
         # Note: The validation/test set starts earlier than the training/validation set ends
         # to account for the `lookback_window`.
-        self.train_time_range = ["2023-01-01", "2025-09-01"]
-        self.val_time_range = ["2023-01-01", "2025-09-01"]
-        self.test_time_range = ["2023-01-01", "2025-09-01"]
-        self.backtest_time_range = ["2023-01-01", "2025-09-01"]
+        self.train_time_range = ["2019-11-01", "2025-09-10"]
+        self.val_time_range = ["2019-11-01", "2025-09-10"]
+        self.test_time_range = ["2019-11-01", "2025-09-10"]
+        self.backtest_time_range = ["2019-11-01", "2025-09-10"]
         #self.use_comet = False
 
         # TODO: Directory to save the processed, pickled datasets.
-        self.dataset_path = "/home/admin/software/kronos/data/processed_datasets"
+        self.dataset_path = "../data/processed_datasets"
 
         # =================================================================
         # Training Hyperparameters
@@ -99,21 +99,24 @@ class Config:
 
         # Base directory for saving model checkpoints and results.
         # Using a general 'outputs' directory is a common practice.
-        self.save_path = "/home/admin/software/kronos/data/outputs/models"
+        self.save_path = "../data/outputs/models"
         self.tokenizer_save_folder_name = 'finetune_tokenizer_demo'
         self.predictor_save_folder_name = 'finetune_predictor_demo'
         self.backtest_save_folder_name = 'finetune_backtest_demo'
 
         # Path for backtesting results.
-        self.backtest_result_path = "/home/admin/software/kronos/data/outputs/backtest_results"
+        self.backtest_result_path = "../data/outputs/backtest_results"
 
         # =================================================================
         # Model & Checkpoint Paths
         # =================================================================
         # TODO: Update these paths to your pretrained model locations.
         # These can be local paths or Hugging Face Hub model identifiers.
-        self.pretrained_tokenizer_path = "/home/admin/software/NeoQuasar/Kronos-Tokenizer-base"
-        self.pretrained_predictor_path = "/home/admin/software/NeoQuasar/Kronos-small"
+        #self.pretrained_tokenizer_path = "/home/admin/software/NeoQuasar/Kronos-Tokenizer-base"
+        #self.pretrained_predictor_path = "/home/admin/software/NeoQuasar/Kronos-small"
+
+        self.pretrained_tokenizer_path = "/Users/longquan/Documents/MYSELF/models/Kronos-Tokenizer-base"
+        self.pretrained_predictor_path = "/Users/longquan/Documents/MYSELF/models/Kronos-base"
 
         # Paths to the fine-tuned models, derived from the save_path.
         # These will be generated automatically during training.
