@@ -4,7 +4,7 @@ torch
 tushare
 pymysql
 sqlalchemy
-
+qlib
 
 einops==0.8.1
 huggingface_hub==0.33.1
