@@ -2,10 +2,6 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
-import qlib
-from qlib.config import REG_CN
-from qlib.data import D
-from qlib.data.dataset.loader import QlibDataLoader
 from tqdm import trange
 from sqlalchemy import create_engine, text
 from db_config import DB_CONFIG
@@ -66,54 +62,6 @@ class QlibDataPreprocessor:
             self.data[symbol] = df
             print(f'end_fetch_data,{ symbol}')
 
-
-
-    def _load_qlib_data(self):
-        """
-        Loads raw data from Qlib, processes it symbol by symbol, and stores
-        it in the `self.data` attribute.
-        """
-        print("Loading and processing data from Qlib...")
-        data_fields_qlib = ['$' + f for f in self.data_fields]
-        cal: np.ndarray = D.calendar()
-
-        # Determine the actual start and end times to load, including buffer for lookback and predict windows.
-        start_index = cal.searchsorted(pd.Timestamp(self.config.dataset_begin_time))
-        end_index = cal.searchsorted(pd.Timestamp(self.config.dataset_end_time))
-        real_start_time = cal[start_index - self.config.lookback_window]
-
-        #if cal[end_index] != pd.Timestamp(self.config.dataset_end_time):
-        #    end_index -= 1
-        #real_end_time = cal[end_index + self.config.predict_window]
-        real_end_time = cal[min(end_index + self.config.predict_window, len(cal) - 1)]
-
-        # Load data using Qlib's data loader.
-        data_df = QlibDataLoader(config=data_fields_qlib).load(
-            self.config.instrument, real_start_time, real_end_time
-        )
-        data_df = data_df.stack().unstack(level=1)  # Reshape for easier access.
-
-        symbol_list = list(data_df.columns)
-        for i in trange(len(symbol_list), desc="Processing Symbols"):
-            symbol = symbol_list[i]
-            symbol_df = data_df[symbol]
-
-            # Pivot the table to have features as columns and datetime as index.
-            symbol_df = symbol_df.reset_index().rename(columns={'level_1': 'field'})
-            symbol_df = pd.pivot(symbol_df, index='datetime', columns='field', values=symbol)
-            symbol_df = symbol_df.rename(columns={f'${field}': field for field in self.data_fields})
-
-            # Calculate amount and select final features.
-            symbol_df['vol'] = symbol_df['volume']
-            symbol_df['amt'] = (symbol_df['open'] + symbol_df['high'] + symbol_df['low'] + symbol_df['close']) / 4 * symbol_df['vol']
-            symbol_df = symbol_df[self.config.feature_list]
-
-            # Filter out symbols with insufficient data.
-            symbol_df = symbol_df.dropna()
-            if len(symbol_df) < self.config.lookback_window + self.config.predict_window + 1:
-                continue
-
-            self.data[symbol] = symbol_df
 
     def prepare_dataset(self):
         """
