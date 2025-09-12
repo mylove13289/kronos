@@ -9,7 +9,6 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-import comet_ml
 
 # Ensure project root is in path
 sys.path.append('../')
@@ -28,7 +27,16 @@ from utils.training_utils import (
 
 def setup_ddp():
     # Force single device mode for MPS/CPU
-    return 0, 1, 0
+    rank = 0
+    world_size = 1
+    local_rank = 0
+
+    # 初始化分布式训练环境（即使在单设备模式下也需要）
+    if not dist.is_initialized():
+        dist.init_process_group(backend='gloo', rank=rank, world_size=world_size)
+
+    return rank, world_size, local_rank
+
 
 
 def create_dataloaders(config: dict, rank: int, world_size: int):
@@ -212,16 +220,7 @@ def main(config: dict):
             'save_directory': save_dir,
             'world_size': world_size,
         }
-        if config['use_comet']:
-            comet_logger = comet_ml.Experiment(
-                api_key=config['comet_config']['api_key'],
-                project_name=config['comet_config']['project_name'],
-                workspace=config['comet_config']['workspace'],
-            )
-            comet_logger.add_tag(config['comet_tag'])
-            comet_logger.set_name(config['comet_name'])
-            comet_logger.log_parameters(config)
-            print("Comet Logger Initialized.")
+
 
     dist.barrier()
 
