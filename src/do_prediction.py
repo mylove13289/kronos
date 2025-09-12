@@ -124,8 +124,12 @@ def main(symbol, iinterval , lookback , pred_len ):
         torch.cuda.manual_seed_all(42)
 
     # 1. Load Model and Tokenizer
-    tokenizer = KronosTokenizer.from_pretrained("/Users/longquan/Documents/git/py/NeoQuasar/Kronos-Tokenizer-base")
-    model = Kronos.from_pretrained("/Users/longquan/Documents/git/py/NeoQuasar/Kronos-base")
+    #tokenizer = KronosTokenizer.from_pretrained("/Users/longquan/Documents/MYSELF/models/Kronos-Tokenizer-base")
+    #model = Kronos.from_pretrained("/Users/longquan/Documents/MYSELF/models/Kronos-base")
+
+    tokenizer = KronosTokenizer.from_pretrained("/Users/longquan/Documents/git_repository/myself/kronos/data/outputs/models/finetune_tokenizer_demo/checkpoints/best_model")
+    model = Kronos.from_pretrained("/Users/longquan/Documents/git_repository/myself/kronos/data/outputs/models/finetune_predictor_demo/checkpoints/best_model")
+
 
     # 2. Instantiate Predictor
     predictor = KronosPredictor(model, tokenizer, device="cpu", max_context=512)

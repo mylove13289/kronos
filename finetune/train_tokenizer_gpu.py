@@ -6,7 +6,6 @@ from time import gmtime, strftime
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-import comet_ml
 
 # Ensure project root is in path
 sys.path.append("../")
@@ -240,7 +239,7 @@ def main(config: dict):
 
 
 if __name__ == '__main__':
-    # Usage: torchrun --standalone --nproc_per_node=1 train_tokenizer_gpu.py
+    # Usage: torchrun --standalone --nproc_per_node=10 train_tokenizer_gpu.py
     if "WORLD_SIZE" not in os.environ:
         raise RuntimeError("This script must be launched with `torchrun`.")
 

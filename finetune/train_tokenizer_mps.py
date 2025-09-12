@@ -6,7 +6,7 @@ from time import gmtime, strftime
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-import comet_ml
+
 
 # Ensure project root is in path
 sys.path.append("../")
@@ -209,17 +209,6 @@ def main(config: dict):
         'start_time': strftime("%Y-%m-%dT%H-%M-%S", gmtime()),
         'save_directory': save_dir,
     }
-
-    if config['use_comet']:
-        comet_logger = comet_ml.Experiment(
-            api_key=config['comet_config']['api_key'],
-            project_name=config['comet_config']['project_name'],
-            workspace=config['comet_config']['workspace'],
-        )
-        comet_logger.add_tag(config['comet_tag'])
-        comet_logger.set_name(config['comet_name'])
-        comet_logger.log_parameters(config)
-        print("Comet Logger Initialized.")
 
     # Model Initialization
     model = KronosTokenizer.from_pretrained(config['pretrained_tokenizer_path'])
