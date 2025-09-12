@@ -27,16 +27,8 @@ from utils.training_utils import (
 
 
 def setup_ddp():
-    # For MPS or CPU-based distributed training, use gloo backend
-    if torch.cuda.is_available():
-        dist.init_process_group(backend='nccl')
-    else:
-        dist.init_process_group(backend='gloo')  # Use gloo for MPS/CPU
-
-    rank = dist.get_rank()
-    world_size = dist.get_world_size()
-    local_rank = int(os.environ.get("LOCAL_RANK", 0))
-    return rank, world_size, local_rank
+    # Force single device mode for MPS/CPU
+    return 0, 1, 0
 
 
 def create_dataloaders(config: dict, rank: int, world_size: int):
