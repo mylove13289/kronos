@@ -9,7 +9,6 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-import comet_ml
 
 # Ensure project root is in path
 sys.path.append('../')
@@ -221,16 +220,7 @@ def main(config: dict):
             'save_directory': save_dir,
             'world_size': world_size,
         }
-        if config['use_comet']:
-            comet_logger = comet_ml.Experiment(
-                api_key=config['comet_config']['api_key'],
-                project_name=config['comet_config']['project_name'],
-                workspace=config['comet_config']['workspace'],
-            )
-            comet_logger.add_tag(config['comet_tag'])
-            comet_logger.set_name(config['comet_name'])
-            comet_logger.log_parameters(config)
-            print("Comet Logger Initialized.")
+
 
     if dist.is_initialized():
         dist.barrier()
@@ -268,7 +258,7 @@ def main(config: dict):
 
 if __name__ == '__main__':
     #        export OMP_NUM_THREADS=2
-    # Usage: torchrun --standalone --nproc_per_node=4 train_predictor_cpu.py
+    # Usage: torchrun --standalone --nproc_per_node=5 train_predictor_cpu.py
     if "WORLD_SIZE" not in os.environ:
         raise RuntimeError("This script must be launched with `torchrun`.")
 
