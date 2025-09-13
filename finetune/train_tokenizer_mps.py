@@ -229,7 +229,7 @@ def main(config: dict):
 
 
 if __name__ == '__main__':
-    # Usage: torchrun --standalone --nproc_per_node=1 train_tokenizer_gpu.py
+    # Usage: torchrun --standalone --nproc_per_node=1 train_tokenizer_mps.py
     if "WORLD_SIZE" not in os.environ:
         raise RuntimeError("This script must be launched with `torchrun`.")
 

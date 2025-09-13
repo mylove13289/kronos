@@ -65,7 +65,8 @@ class Config:
 
         # Number of samples to draw for one "epoch" of training/validation.
         # This is useful for large datasets where a true epoch is too long.
-        self.n_train_iter = 2000 * self.batch_size
+        #self.n_train_iter = 2000 * self.batch_size
+        self.n_train_iter = 600000
         self.n_val_iter = 400 * self.batch_size
 
         # Learning rates for different model components.

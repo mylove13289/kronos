@@ -222,7 +222,7 @@ def get_model_for_sizing(model):
 def main(config: dict):
     """Main function to orchestrate the DDP training process."""
     rank, world_size, local_rank = setup_ddp()
-    device = torch.device('mps:0')
+    device = torch.device('cuda:0')
     set_seed(config['seed'], rank)
 
     save_dir = os.path.join(config['save_path'], config['predictor_save_folder_name'])
