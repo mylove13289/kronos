@@ -51,7 +51,7 @@ def plot_prediction(kline_df, pred_df):
     plt.show()
 
 
-def load_kline_data_from_db(db_config, symbol=None, iinterval=None, start_date=None, end_date=None):
+def load_kline_data_from_db(db_config, symbol=None, iinterval=None, start_date=None, end_date=None,count=0):
     """
     从数据库查询K线数据
 
@@ -91,11 +91,15 @@ def load_kline_data_from_db(db_config, symbol=None, iinterval=None, start_date=N
         query += " AND trade_date <= :end_date"
         params['end_date'] = end_date
 
-    query += " ORDER BY ts_code asc limit 500"
+    query += f" ORDER BY trade_date asc limit {count}"
 
     # 执行查询并返回DataFrame
-    df = pd.read_sql_query(text(query), engine, params=params)
-
+    #df = pd.read_sql_query(text(query), engine, params=params)
+    df = pd.read_sql_query(f'select * from (SELECT * FROM new_kline_data WHERE 1=1 AND ts_code = \'ETHUSDT\' AND iinterval = \'5m\' AND iinterval = \'5m\'  order by id desc limit {count})t order by id asc ', engine)
+    # 576 + 72
+    # 将查出来的数据按trade_date进行升序
+    #df['trade_date'] = pd.to_datetime(df['trade_date'])
+    #df.sort_values(by='trade_date', inplace=True)
     return df
 
 
@@ -132,10 +136,11 @@ def main(symbol, iinterval , lookback , pred_len ):
 
 
     # 2. Instantiate Predictor
-    predictor = KronosPredictor(model, tokenizer, device="cpu", max_context=512)
+    predictor = KronosPredictor(model, tokenizer, device="mps:0", max_context=512)
 
+    count = lookback + pred_len
     # 3. Prepare Data
-    df = load_kline_data_from_db(DB_CONFIG, symbol=symbol, iinterval=iinterval)
+    df = load_kline_data_from_db(DB_CONFIG, symbol=symbol, iinterval=iinterval, start_date='2025-09-09 19:00:00', end_date=None,count=count)
 
     # 添加数据验证
     if df.empty:
@@ -155,18 +160,17 @@ def main(symbol, iinterval , lookback , pred_len ):
     x_timestamp = df.loc[:lookback - 1, 'trade_date']
     y_timestamp = df.loc[lookback:lookback + pred_len - 1, 'trade_date']
 
-    # 4. Make Prediction
+    # 创新性预测（更多样化，适合探索性分析）
     pred_df = predictor.predict(
         df=x_df,
         x_timestamp=x_timestamp,
         y_timestamp=y_timestamp,
         pred_len=pred_len,
-        T=1.0,
-        top_p=0.9,
-        sample_count=1,
+        T=1.2,  # 更高的温度值
+        top_p=0.98,  # 更高的top_p值
+        sample_count=3,  # 减少采样次数
         verbose=True
     )
-
     # 5. Visualize Results
     # Combine historical and forecasted data for plotting
     kline_df = df.loc[:lookback + pred_len - 1]
@@ -177,10 +181,10 @@ def main(symbol, iinterval , lookback , pred_len ):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Kronos Model Prediction')
-    parser.add_argument('--symbol', type=str, default='BTCUSDT', help='Trading pair symbol (e.g., BTCUSDT)')
-    parser.add_argument('--iinterval', type=str, default='15m', help='Interval (e.g., 5m, 15m)')
-    parser.add_argument('--lookback', type=int, default=200, help='Lookback period')
-    parser.add_argument('--pred_len', type=int, default=100, help='Prediction length')
+    parser.add_argument('--symbol', type=str, default='ETHUSDT', help='Trading pair symbol (e.g., BTCUSDT)')
+    parser.add_argument('--iinterval', type=str, default='5m', help='Interval (e.g., 5m, 15m)')
+    parser.add_argument('--lookback', type=int, default=400, help='Lookback period')
+    parser.add_argument('--pred_len', type=int, default=120, help='Prediction length')
 
     args = parser.parse_args()
 

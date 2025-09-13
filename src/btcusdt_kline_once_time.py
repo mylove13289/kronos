@@ -28,6 +28,11 @@ def kline(symbol,iinterval,startDate,endDate):
     client = Client()
     klines = client.get_historical_klines(symbol, iinterval, startDate, endDate)
 
+    # 如果klines是一个空数组，则返回
+    if not klines:
+        print(f"No data fetched for {symbol} from {startDate} to {endDate}")
+        return
+
     #klines = client.get_klines(symbol=symbol, interval=interval, limit=limit)
 
     # newline = client.get_historical_klines("BTCUSDT", Client.KLINE_INTERVAL_15MINUTE, "2020-01-01", "2025-09-01")
@@ -91,9 +96,9 @@ def kline_loop(symbol,iinterval,start_date, end_date):
     current_date = datetime.strptime(start_date, '%Y-%m-%d')
     end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
 
-    while current_date <= end_date_obj+timedelta(days=10):
+    while current_date <= end_date_obj+timedelta(days=1):
         # 计算下一天
-        next_date = current_date + timedelta(days=10)
+        next_date = current_date + timedelta(days=1)
 
         # 格式化日期字符串
         current_date_str = current_date.strftime('%Y-%m-%d')
@@ -110,8 +115,8 @@ def kline_loop(symbol,iinterval,start_date, end_date):
 
 if __name__ == "__main__":
     # 开始时间和结束时间
-    start_date = '2021-05-18'
-    end_date = '2025-09-10'
+    start_date = '2025-09-13'
+    end_date = '2025-09-14'
     symbol = 'ETHUSDT'
     iinterval = '5m'
     #symbol = sys.argv[1]

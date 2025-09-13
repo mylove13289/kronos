@@ -2,9 +2,11 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
+import qlib
+from qlib.config import REG_CN
+from qlib.data import D
+from qlib.data.dataset.loader import QlibDataLoader
 from tqdm import trange
-from sqlalchemy import create_engine, text
-from db_config import DB_CONFIG
 
 from config import Config
 
@@ -20,48 +22,65 @@ class QlibDataPreprocessor:
         self.data_fields = ['open', 'close', 'high', 'low', 'volume', 'vwap']
         self.data = {}  # A dictionary to store processed data for each symbol.
 
-
+    def initialize_qlib(self):
+        """Initializes the Qlib environment."""
+        print("Initializing Qlib...")
+        qlib.init(provider_uri=self.config.qlib_data_path, region=REG_CN)
 
     def load_qlib_data(self):
+        """
+        Loads raw data from Qlib, processes it symbol by symbol, and stores
+        it in the `self.data` attribute.
+        """
+        print("Loading and processing data from Qlib...")
+        data_fields_qlib = ['$' + f for f in self.data_fields]
+        cal: np.ndarray = D.calendar()
 
-        engine = create_engine(
-            f"mysql+pymysql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@"
-            f"{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
+        # Determine the actual start and end times to load, including buffer for lookback and predict windows.
+        start_index = cal.searchsorted(pd.Timestamp(self.config.dataset_begin_time))
+        end_index = cal.searchsorted(pd.Timestamp(self.config.dataset_end_time))
+
+        # Check if start_index lookbackw_window will cause negative index
+        adjusted_start_index = max(start_index - self.config.lookback_window, 0)
+        real_start_time = cal[adjusted_start_index]
+
+        # Check if end_index exceeds the range of the array
+        if end_index >= len(cal):
+            end_index = len(cal) - 1
+        elif cal[end_index] != pd.Timestamp(self.config.dataset_end_time):
+            end_index -= 1
+
+        # Check if end_index+predictw_window will exceed the range of the array
+        adjusted_end_index = min(end_index + self.config.predict_window, len(cal) - 1)
+        real_end_time = cal[adjusted_end_index]
+
+        # Load data using Qlib's data loader.
+        data_df = QlibDataLoader(config=data_fields_qlib).load(
+            self.config.instrument, real_start_time, real_end_time
         )
+        data_df = data_df.stack().unstack(level=1)  # Reshape for easier access.
 
-        symbolList = ["ETHUSDT"]
-        #symbolList = ["AVAXUSDT","BCHUSDT","BNBUSDT","BTCUSDT","DOGEUSDT","ETHUSDT","LINKUSDT","LTCUSDT","OPUSDT","SOLUSDT","UNIUSDT","XRPUSDT"]
-        #循环symbolList
-        for symbol in symbolList:
-            print(f'start_fetch_data,{ symbol}')
+        symbol_list = list(data_df.columns)
+        for i in trange(len(symbol_list), desc="Processing Symbols"):
+            symbol = symbol_list[i]
+            symbol_df = data_df[symbol]
 
-            # 构建SQL查询语句
-            query = "SELECT * FROM new_kline_data WHERE 1=1"
-            params = {}
+            # Pivot the table to have features as columns and datetime as index.
+            symbol_df = symbol_df.reset_index().rename(columns={'level_1': 'field'})
+            symbol_df = pd.pivot(symbol_df, index='datetime', columns='field', values=symbol)
+            symbol_df = symbol_df.rename(columns={f'${field}': field for field in self.data_fields})
 
-            if 1:
-                query += " AND ts_code = :symbol"
-                params['symbol'] = f'{symbol}'
+            # Calculate amount and select final features.
+            symbol_df['vol'] = symbol_df['volume']
+            symbol_df['amt'] = (symbol_df['open'] + symbol_df['high'] + symbol_df['low'] + symbol_df['close']) / 4 * symbol_df['vol']
+            symbol_df = symbol_df[self.config.feature_list]
 
-            if 1:
-                query += " AND iinterval = :iinterval"
-                params['iinterval'] = '5m'
+            # Filter out symbols with insufficient data.
+            symbol_df = symbol_df.dropna()
+            if len(symbol_df) < self.config.lookback_window + self.config.predict_window + 1:
+                continue
 
-            query += " ORDER BY id asc"
-
-            # 执行查询并返回DataFrame
-            df = pd.read_sql_query(text(query), engine, params=params)
-            #删除df的id
-            df.drop(columns=['id',"ts_code","iinterval","deleted","gmt_create","gmt_update","change","pct_chg","amount","pre_close"], inplace=True)
-            #df.rename(columns={'amount': 'amt'}, inplace=True)
-            df['amt'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4 * df['vol']
-            #把df中trade_date类型设置为datetime
-            df['datetime'] = pd.to_datetime(df['trade_date'])
-            #df的ts_code 设置为index
-            df.set_index('datetime', inplace=True)
-            self.data[symbol] = df
-            print(f'end_fetch_data,{ symbol}')
-
+            self.data[symbol] = symbol_df
 
     def prepare_dataset(self):
         """
@@ -89,8 +108,6 @@ class QlibDataPreprocessor:
             train_data[symbol] = symbol_df[train_mask]
             val_data[symbol] = symbol_df[val_mask]
             test_data[symbol] = symbol_df[test_mask]
-            print(f'prepare_dataset,{ symbol}')
-
 
         # Save the datasets using pickle.
         os.makedirs(self.config.dataset_path, exist_ok=True)
@@ -107,6 +124,6 @@ class QlibDataPreprocessor:
 if __name__ == '__main__':
     # This block allows the script to be run directly to perform data preprocessing.
     preprocessor = QlibDataPreprocessor()
-    #preprocessor.initialize_qlib()
+    preprocessor.initialize_qlib()
     preprocessor.load_qlib_data()
     preprocessor.prepare_dataset()
