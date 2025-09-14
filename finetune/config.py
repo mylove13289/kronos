@@ -39,7 +39,7 @@ class Config:
         #self.use_comet = False
 
         # TODO: Directory to save the processed, pickled datasets.
-        self.dataset_path = "../data/processed_datasets"
+        self.dataset_path = "/Users/longquan/Documents/git_repository/myself/kronos/data/processed_datasets"
 
         # =================================================================
         # Training Hyperparameters
@@ -59,9 +59,9 @@ class Config:
         epochs
         通常意味着更长的训练时间和可能更好的模型性能（但也可能导致过拟合）
         在训练循环中的使用："""
-        self.epochs = 2
+        self.epochs = 10
         self.log_interval = 100  # Log training status every N batches.
-        self.batch_size = 20  # Batch size per GPU.
+        self.batch_size = 50  # Batch size per GPU.
 
         # Number of samples to draw for one "epoch" of training/validation.
         # This is useful for large datasets where a true epoch is too long.
@@ -70,8 +70,10 @@ class Config:
         self.n_val_iter = 400 * self.batch_size
 
         # Learning rates for different model components.
-        self.tokenizer_learning_rate = 2e-4
-        self.predictor_learning_rate = 4e-5
+        # 学习率 (BTC数据需要更小的学习率)
+        self.tokenizer_learning_rate = 4e-4
+        # self.predictor_learning_rate = 2e-5
+        self.predictor_learning_rate = 8e-4
 
         # Gradient accumulation to simulate a larger batch size.
         self.accumulation_steps = 1

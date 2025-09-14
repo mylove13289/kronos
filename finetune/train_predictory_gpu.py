@@ -236,16 +236,6 @@ def main(config: dict):
             'save_directory': save_dir,
             'world_size': world_size,
         }
-        if config['use_comet']:
-            comet_logger = comet_ml.Experiment(
-                api_key=config['comet_config']['api_key'],
-                project_name=config['comet_config']['project_name'],
-                workspace=config['comet_config']['workspace'],
-            )
-            comet_logger.add_tag(config['comet_tag'])
-            comet_logger.set_name(config['comet_name'])
-            comet_logger.log_parameters(config)
-            print("Comet Logger Initialized.")
 
     # Model Initialization
     tokenizer = KronosTokenizer.from_pretrained(config['finetuned_tokenizer_path'])

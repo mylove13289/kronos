@@ -50,20 +50,22 @@ class QlibDataset(Dataset):
         # Pre-compute all possible (symbol, start_index) pairs.
         self.indices = []
         print(f"[{data_type.upper()}] Pre-computing sample indices...")
+
         for symbol in self.symbols:
             df = self.data[symbol].reset_index()
             series_len = len(df)
+
             num_samples = series_len - self.window + 1
 
             if num_samples > 0:
                 # Generate time features and store them directly in the dataframe.
                 #df所有的列
                 print(f'd都有哪些列:{df.columns}')
-                df['minute'] = df['datetime'].dt.minute
-                df['hour'] = df['datetime'].dt.hour
-                df['weekday'] = df['datetime'].dt.weekday
-                df['day'] = df['datetime'].dt.day
-                df['month'] = df['datetime'].dt.month
+                df['minute'] = df['timestamp'].dt.minute
+                df['hour'] = df['timestamp'].dt.hour
+                df['weekday'] = df['timestamp'].dt.weekday
+                df['day'] = df['timestamp'].dt.day
+                df['month'] = df['timestamp'].dt.month
                 # Keep only necessary columns to save memory.
                 self.data[symbol] = df[self.feature_list + self.time_feature_list]
 

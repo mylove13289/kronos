@@ -18,7 +18,8 @@ import numpy as np
 import torch
 import argparse
 
-def plot_prediction(kline_df, pred_df):
+
+def plot_prediction(kline_df, pred_df, symbol, iinterval,titleFlag, save_path=None):
     pred_df.index = kline_df.index[-pred_df.shape[0]:]
     sr_close = kline_df['close']
     sr_pred_close = pred_df['close']
@@ -33,21 +34,29 @@ def plot_prediction(kline_df, pred_df):
     close_df = pd.concat([sr_close, sr_pred_close], axis=1)
     volume_df = pd.concat([sr_volume, sr_pred_volume], axis=1)
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
 
     ax1.plot(close_df['Ground Truth'], label='Ground Truth', color='blue', linewidth=1.5)
     ax1.plot(close_df['Prediction'], label='Prediction', color='red', linewidth=1.5)
     ax1.set_ylabel('Close Price', fontsize=14)
     ax1.legend(loc='lower left', fontsize=12)
     ax1.grid(True)
+    ax1.set_title(f'{symbol} Price Prediction ({iinterval}- {titleFlag})', fontsize=16)
 
     ax2.plot(volume_df['Ground Truth'], label='Ground Truth', color='blue', linewidth=1.5)
     ax2.plot(volume_df['Prediction'], label='Prediction', color='red', linewidth=1.5)
     ax2.set_ylabel('Volume', fontsize=14)
     ax2.legend(loc='upper left', fontsize=12)
     ax2.grid(True)
+    ax2.set_xlabel('Time', fontsize=14)
 
     plt.tight_layout()
+
+    # 保存图片到本地
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"预测结果图片已保存到: {save_path}")
+
     plt.show()
 
 
@@ -95,7 +104,7 @@ def load_kline_data_from_db(db_config, symbol=None, iinterval=None, start_date=N
 
     # 执行查询并返回DataFrame
     #df = pd.read_sql_query(text(query), engine, params=params)
-    df = pd.read_sql_query(f'select * from (SELECT * FROM new_kline_data WHERE 1=1 AND ts_code = \'ETHUSDT\' AND iinterval = \'5m\' AND iinterval = \'5m\'  order by id desc limit {count})t order by id asc ', engine)
+    df = pd.read_sql_query(f'select * from (SELECT * FROM new_kline_data WHERE 1=1 AND ts_code = \'ETHUSDT\' AND iinterval = \'5m\' AND iinterval = \'5m\' and trade_date <= \'{end_date}\' order by id desc limit {count})t order by id asc ', engine)
     # 576 + 72
     # 将查出来的数据按trade_date进行升序
     #df['trade_date'] = pd.to_datetime(df['trade_date'])
@@ -140,7 +149,7 @@ def main(symbol, iinterval , lookback , pred_len ):
 
     count = lookback + pred_len
     # 3. Prepare Data
-    df = load_kline_data_from_db(DB_CONFIG, symbol=symbol, iinterval=iinterval, start_date='2025-09-09 19:00:00', end_date=None,count=count)
+    df = load_kline_data_from_db(DB_CONFIG, symbol=symbol, iinterval=iinterval, start_date=None, end_date='2025-09-12 03:00:00',count=count)
 
     # 添加数据验证
     if df.empty:
@@ -161,30 +170,38 @@ def main(symbol, iinterval , lookback , pred_len ):
     y_timestamp = df.loc[lookback:lookback + pred_len - 1, 'trade_date']
 
     # 创新性预测（更多样化，适合探索性分析）
+    # 平衡预测（推荐的默认设置）
     pred_df = predictor.predict(
         df=x_df,
         x_timestamp=x_timestamp,
         y_timestamp=y_timestamp,
         pred_len=pred_len,
-        T=1.2,  # 更高的温度值
-        top_p=0.98,  # 更高的top_p值
-        sample_count=3,  # 减少采样次数
+        T=0.75,
+        top_p=0.92,
+        sample_count=8,
         verbose=True
     )
+
     # 5. Visualize Results
     # Combine historical and forecasted data for plotting
     kline_df = df.loc[:lookback + pred_len - 1]
 
+    # 创建保存路径
+    os.makedirs("predictions", exist_ok=True)
+    timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
+    save_path = f"predictions/{symbol}_{iinterval}_prediction_{timestamp}.png"
+
+    titleFlag = f'{lookback}/{pred_len}';
     # visualize
-    plot_prediction(kline_df, pred_df)
+    plot_prediction(kline_df, pred_df, symbol, iinterval,titleFlag, save_path)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Kronos Model Prediction')
     parser.add_argument('--symbol', type=str, default='ETHUSDT', help='Trading pair symbol (e.g., BTCUSDT)')
     parser.add_argument('--iinterval', type=str, default='5m', help='Interval (e.g., 5m, 15m)')
-    parser.add_argument('--lookback', type=int, default=400, help='Lookback period')
-    parser.add_argument('--pred_len', type=int, default=120, help='Prediction length')
+    parser.add_argument('--lookback', type=int, default=180, help='Lookback period')
+    parser.add_argument('--pred_len', type=int, default=30, help='Prediction length')
 
     args = parser.parse_args()
 
