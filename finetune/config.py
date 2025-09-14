@@ -18,7 +18,7 @@ class Config:
         self.data_source = 'binance'  # 使用Binance数据源
 
         # Overall time range for data loading from Qlib.
-        self.dataset_begin_time = "2109-01-01"
+        self.dataset_begin_time = "2019-01-01"
         self.dataset_end_time = '2025-09-01'
 
         # Sliding window parameters for creating samples.
