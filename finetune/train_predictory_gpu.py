@@ -9,17 +9,14 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-
 # Ensure project root is in path
 sys.path.append('../')
-
-
 from config import Config
-from dataset import QlibDataset
+from btc_dataset import BTCDataset
 from model.kronos import KronosTokenizer, Kronos
 # Import shared utilities
 from utils.training_utils import (
-    #setup_ddp,
+    setup_ddp,
     cleanup_ddp,
     set_seed,
     get_model_size,
@@ -27,65 +24,49 @@ from utils.training_utils import (
 )
 
 
-def setup_ddp():
+def create_dataloaders(config: dict, rank: int, world_size: int, device_type: str):
     """
-    Simplified setup for single GPU.
-    """
-    rank = 0
-    world_size = 1
-    local_rank = 0
-    torch.cuda.set_device(local_rank)
-    return rank, world_size, local_rank
-
-
-def create_dataloaders(config: dict, rank: int, world_size: int):
-    """
-    Creates and returns dataloaders for training and validation (single GPU).
+    Creates and returns dataloaders for training and validation.
 
     Args:
         config (dict): A dictionary of configuration parameters.
         rank (int): The global rank of the current process.
         world_size (int): The total number of processes.
+        device_type (str): The type of device being used ('cuda', 'mps', or 'cpu').
 
     Returns:
         tuple: (train_loader, val_loader, train_dataset, valid_dataset).
     """
-    print(f"Creating dataloaders...")
-    train_dataset = QlibDataset('train')
-    valid_dataset = QlibDataset('val')
-    print(f"Train dataset size: {len(train_dataset)}, Validation dataset size: {len(valid_dataset)}")
+    print(f"[Rank {rank}] Creating dataloaders...")
+    train_dataset = BTCDataset('train')
+    valid_dataset = BTCDataset('val')
+    print(f"[Rank {rank}] Train dataset size: {len(train_dataset)}, Validation dataset size: {len(valid_dataset)}")
+
+    # 根据设备类型选择采样器
+    if device_type == "mps":
+        # 对于 MPS 设备，使用普通的采样器
+        from torch.utils.data import RandomSampler, SequentialSampler
+        train_sampler = RandomSampler(train_dataset)
+        val_sampler = SequentialSampler(valid_dataset)
+        print(f"[Rank {rank}] Using non-distributed samplers for MPS device")
+    else:
+        # 对于 CUDA 或 CPU，使用分布式采样器
+        train_sampler = DistributedSampler(train_dataset, num_replicas=world_size, rank=rank, shuffle=True)
+        val_sampler = DistributedSampler(valid_dataset, num_replicas=world_size, rank=rank, shuffle=False)
+        print(f"[Rank {rank}] Using distributed samplers")
 
     train_loader = DataLoader(
-        train_dataset,
-        batch_size=config['batch_size'],
-        shuffle=True,
-        num_workers=config.get('num_workers', 2),
-        pin_memory=True,
-        drop_last=True
+        train_dataset, batch_size=config['batch_size'], sampler=train_sampler,
+        num_workers=config.get('num_workers', 2), pin_memory=True, drop_last=True
     )
-
     val_loader = DataLoader(
-        valid_dataset,
-        batch_size=config['batch_size'],
-        shuffle=False,
-        num_workers=config.get('num_workers', 2),
-        pin_memory=True,
-        drop_last=False
+        valid_dataset, batch_size=config['batch_size'], sampler=val_sampler,
+        num_workers=config.get('num_workers', 2), pin_memory=True, drop_last=False
     )
     return train_loader, val_loader, train_dataset, valid_dataset
 
 
-def set_sampler_epoch(loader, epoch):
-    """安全地设置采样器的epoch"""
-    if hasattr(loader, 'sampler'):
-        sampler = loader.sampler
-        if hasattr(sampler, 'set_epoch'):
-            sampler.set_epoch(epoch)
-            return True
-    return False
-
-
-def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_size):
+def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_size, device_type):
     """
     The main training and validation loop for the predictor.
     """
@@ -94,7 +75,7 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
         effective_bs = config['batch_size'] * world_size
         print(f"Effective BATCHSIZE per GPU: {config['batch_size']}, Total: {effective_bs}")
 
-    train_loader, val_loader, train_dataset, valid_dataset = create_dataloaders(config, rank, world_size)
+    train_loader, val_loader, train_dataset, valid_dataset = create_dataloaders(config, rank, world_size, device_type)
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -116,14 +97,27 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
         epoch_start_time = time.time()
         model.train()
 
-        # 使用辅助函数安全地设置采样器epoch
-        if not set_sampler_epoch(train_loader, epoch_idx) and world_size > 1:
-            print(f"[Warning] Could not set epoch for sampler in epoch {epoch_idx}")
+        # 只有在使用分布式采样器时才设置 epoch
+        if hasattr(train_loader.sampler, 'set_epoch'):
+            train_loader.sampler.set_epoch(epoch_idx)
 
-        train_dataset.set_epoch_seed(epoch_idx * 10000 + rank)
-        valid_dataset.set_epoch_seed(0)
+        # 设置数据集种子
+        if device_type != "mps":  # 只在分布式训练中使用 rank
+            train_dataset.set_epoch_seed(epoch_idx * 10000 + rank)
+            valid_dataset.set_epoch_seed(0)
+        else:
+            train_dataset.set_epoch_seed(epoch_idx * 10000)  # MPS 不使用 rank
+            valid_dataset.set_epoch_seed(0)
 
-        for i, (batch_x, batch_x_stamp) in enumerate(train_loader):
+        for i, batch_data in enumerate(train_loader):
+            # 从字典中提取特征张量
+            if isinstance(batch_data, dict):
+                batch_x = batch_data['x']
+                batch_x_stamp = batch_data['x_stamp']
+            else:
+                batch_x = batch_data[0] if isinstance(batch_data, (list, tuple)) else batch_data
+                batch_x_stamp = batch_data[1] if isinstance(batch_data, (list, tuple)) and len(batch_data) > 1 else None
+
             batch_x = batch_x.squeeze(0).to(device, non_blocking=True)
             batch_x_stamp = batch_x_stamp.squeeze(0).to(device, non_blocking=True)
 
@@ -137,9 +131,13 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
 
             # Forward pass and loss calculation
             logits = model(token_in[0], token_in[1], batch_x_stamp[:, :-1, :])
-            # 修复：确保正确访问模型的head
-            actual_model = model.module if hasattr(model, 'module') else model
-            loss, s1_loss, s2_loss = actual_model.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
+
+            # 根据是否使用 DDP 调整模型头的访问方式
+            if hasattr(model, 'module'):
+                loss, s1_loss, s2_loss = model.module.head.compute_loss(logits[0], logits[1], token_out[0],
+                                                                        token_out[1])
+            else:
+                loss, s1_loss, s2_loss = model.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
 
             # Backward pass and optimization
             optimizer.zero_grad()
@@ -169,7 +167,16 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
         tot_val_loss_sum_rank = 0.0
         val_batches_processed_rank = 0
         with torch.no_grad():
-            for batch_x, batch_x_stamp in val_loader:
+            for batch_data in val_loader:
+                # 从字典中提取特征张量
+                if isinstance(batch_data, dict):
+                    batch_x = batch_data['x']
+                    batch_x_stamp = batch_data['x_stamp']
+                else:
+                    batch_x = batch_data[0] if isinstance(batch_data, (list, tuple)) else batch_data
+                    batch_x_stamp = batch_data[1] if isinstance(batch_data, (list, tuple)) and len(
+                        batch_data) > 1 else None
+
                 batch_x = batch_x.squeeze(0).to(device, non_blocking=True)
                 batch_x_stamp = batch_x_stamp.squeeze(0).to(device, non_blocking=True)
 
@@ -178,20 +185,27 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
                 token_out = [token_seq_0[:, 1:], token_seq_1[:, 1:]]
 
                 logits = model(token_in[0], token_in[1], batch_x_stamp[:, :-1, :])
-                actual_model = model.module if hasattr(model, 'module') else model
-                val_loss, _, _ = actual_model.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
+
+                # 根据是否使用 DDP 调整模型头的访问方式
+                if hasattr(model, 'module'):
+                    val_loss, _, _ = model.module.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
+                else:
+                    val_loss, _, _ = model.head.compute_loss(logits[0], logits[1], token_out[0], token_out[1])
 
                 tot_val_loss_sum_rank += val_loss.item()
                 val_batches_processed_rank += 1
 
-        # Reduce validation metrics - 只在多GPU模式下进行all_reduce
-        if world_size > 1:
+        # 只在分布式训练中进行 all_reduce 操作
+        if device_type != "mps":
+            # Reduce validation metrics
             val_loss_sum_tensor = torch.tensor(tot_val_loss_sum_rank, device=device)
             val_batches_tensor = torch.tensor(val_batches_processed_rank, device=device)
             dist.all_reduce(val_loss_sum_tensor, op=dist.ReduceOp.SUM)
             dist.all_reduce(val_batches_tensor, op=dist.ReduceOp.SUM)
+
             avg_val_loss = val_loss_sum_tensor.item() / val_batches_tensor.item() if val_batches_tensor.item() > 0 else 0
         else:
+            # 对于非分布式训练，直接计算平均值
             avg_val_loss = tot_val_loss_sum_rank / val_batches_processed_rank if val_batches_processed_rank > 0 else 0
 
         # --- End of Epoch Summary & Checkpointing (Master Process Only) ---
@@ -206,23 +220,44 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
                 save_path = f"{save_dir}/checkpoints/best_model"
-                # 修复：正确访问模型进行保存
-                actual_model = model.module if hasattr(model, 'module') else model
-                actual_model.save_pretrained(save_path)
+
+                # 根据是否使用 DDP 调整模型保存方式
+                if hasattr(model, 'module'):
+                    model.module.save_pretrained(save_path)
+                else:
+                    model.save_pretrained(save_path)
                 print(f"Best model saved to {save_path} (Val Loss: {best_val_loss:.4f})")
+
+        if device_type != "mps":  # 只在分布式训练中使用 barrier
+            dist.barrier()
 
     dt_result['best_val_loss'] = best_val_loss
     return dt_result
 
 
-def get_model_for_sizing(model):
-    """获取用于计算模型大小的模型对象"""
-    return model.module if hasattr(model, 'module') else model
-
 def main(config: dict):
     """Main function to orchestrate the DDP training process."""
-    rank, world_size, local_rank = setup_ddp()
-    device = torch.device('cuda:0')
+    # 根据设备选择后端
+    if torch.cuda.is_available():
+        dist.init_process_group(backend="nccl")
+    else:
+        dist.init_process_group(backend="gloo")
+
+    rank = dist.get_rank()
+    world_size = dist.get_world_size()
+    local_rank = int(os.environ.get("LOCAL_RANK", 0))
+
+    # 确定设备
+    if torch.cuda.is_available():
+        device = torch.device(f"cuda:{local_rank}")
+        device_type = "cuda"
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps:0")
+        device_type = "mps"
+    else:
+        device = torch.device("cpu")
+        device_type = "cpu"
+
     set_seed(config['seed'], rank)
 
     save_dir = os.path.join(config['save_path'], config['predictor_save_folder_name'])
@@ -237,21 +272,29 @@ def main(config: dict):
             'world_size': world_size,
         }
 
+    if device_type != "mps":  # 只在分布式训练中使用 barrier
+        dist.barrier()
+
     # Model Initialization
     tokenizer = KronosTokenizer.from_pretrained(config['finetuned_tokenizer_path'])
     tokenizer.eval().to(device)
-    print(f"Tokenizer loaded: {tokenizer is not None}")
 
     model = Kronos.from_pretrained(config['pretrained_predictor_path'])
     model.to(device)
-    print(f"Model loaded: {model is not None}")
+
+    # 只在非 MPS 设备上使用 DDP
+    if device_type != "mps":
+        model = DDP(model, device_ids=[local_rank] if device_type == "cuda" else None, find_unused_parameters=False)
 
     if rank == 0:
-        print(f"Predictor Model Size: {get_model_size(get_model_for_sizing(model))}")
+        if hasattr(model, 'module'):
+            print(f"Predictor Model Size: {get_model_size(model.module)}")
+        else:
+            print(f"Predictor Model Size: {get_model_size(model)}")
 
     # Start Training
     dt_result = train_model(
-        model, tokenizer, device, config, save_dir, comet_logger, rank, world_size
+        model, tokenizer, device, config, save_dir, comet_logger, rank, world_size, device_type
     )
 
     if rank == 0:
@@ -261,13 +304,13 @@ def main(config: dict):
         print('Training finished. Summary file saved.')
         if comet_logger: comet_logger.end()
 
-    # 只在多GPU设置中清理DDP
-    if world_size > 1:
+    if device_type != "mps":  # 只在分布式训练中清理
         cleanup_ddp()
 
 
 if __name__ == '__main__':
-    # Usage: torchrun --standalone --nproc_per_node=1 train_predictory_gpu.py
+    # 使用mps 单进程训练（最简单）
+    # Usage: torchrun --standalone --nproc_per_node=1 train_predictor_mps.py
     if "WORLD_SIZE" not in os.environ:
         raise RuntimeError("This script must be launched with `torchrun`.")
 

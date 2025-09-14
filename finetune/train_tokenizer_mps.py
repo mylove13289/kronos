@@ -7,11 +7,10 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-
 # Ensure project root is in path
 sys.path.append("../")
 from config import Config
-from dataset import QlibDataset
+from btc_dataset import BTCDataset
 from model.kronos import KronosTokenizer
 # Import shared utilities
 from utils.training_utils import (
@@ -32,8 +31,8 @@ def create_dataloaders(config: dict):
         tuple: A tuple containing (train_loader, val_loader, train_dataset, valid_dataset).
     """
     print("Creating dataloaders...")
-    train_dataset = QlibDataset('train')
-    valid_dataset = QlibDataset('val')
+    train_dataset = BTCDataset('train')
+    valid_dataset = BTCDataset('val')
     print(f"Train dataset size: {len(train_dataset)}, Validation dataset size: {len(valid_dataset)}")
 
     train_loader = DataLoader(
@@ -104,7 +103,13 @@ def train_model(model, device, config, save_dir, logger):
         train_dataset.set_epoch_seed(epoch_idx * 10000)
         valid_dataset.set_epoch_seed(0)  # Keep validation sampling consistent
 
-        for i, (ori_batch_x, _) in enumerate(train_loader):
+        for i, batch_data in enumerate(train_loader):
+            # 从字典中提取特征张量
+            if isinstance(batch_data, dict):
+                ori_batch_x = batch_data['x']
+            else:
+                ori_batch_x = batch_data[0] if isinstance(batch_data, (list, tuple)) else batch_data
+
             ori_batch_x = ori_batch_x.squeeze(0).to(device, non_blocking=True)
 
             # --- Gradient Accumulation Loop ---
@@ -159,7 +164,13 @@ def train_model(model, device, config, save_dir, logger):
         tot_val_loss_sum = 0.0
         val_sample_count = 0
         with torch.no_grad():
-            for ori_batch_x, _ in val_loader:
+            for batch_data in val_loader:
+                # 从字典中提取特征张量
+                if isinstance(batch_data, dict):
+                    ori_batch_x = batch_data['x']
+                else:
+                    ori_batch_x = batch_data[0] if isinstance(batch_data, (list, tuple)) else batch_data
+
                 ori_batch_x = ori_batch_x.squeeze(0).to(device, non_blocking=True)
                 zs, _, _, _ = model(ori_batch_x)
                 _, z = zs

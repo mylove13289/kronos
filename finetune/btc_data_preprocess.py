@@ -8,7 +8,7 @@ from tqdm import trange, tqdm
 import time
 import random
 
-from btc_config import BTCConfig
+from config import Config
 
 
 class BTCDataPreprocessor:
@@ -18,7 +18,7 @@ class BTCDataPreprocessor:
 
     def __init__(self):
         """Initializes the preprocessor with configuration."""
-        self.config = BTCConfig()
+        self.config = Config()
         self.data = {}  # A dictionary to store processed data for each symbol.
         # A list of official Binance API endpoints for redundancy.
         self.api_endpoints = [
@@ -194,9 +194,6 @@ class BTCDataPreprocessor:
 
         # 过滤掉数据不足的部分
         symbol_df = symbol_df.dropna()
-        min_length = self.config.lookback_window + self.config.predict_window + 1
-        if len(symbol_df) < min_length:
-            raise ValueError(f"Insufficient data: {len(symbol_df)} < {min_length}")
 
         # 保存备份
         backup_file = 'data/btc_backup_data.csv'
@@ -283,7 +280,7 @@ if __name__ == '__main__':
     preprocessor = BTCDataPreprocessor()
 
     # 打印配置信息
-    preprocessor.config.print_config_summary()
+    #preprocessor.config.print_config_summary()
 
     try:
         # 加载和处理BTC数据

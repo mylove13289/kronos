@@ -9,12 +9,10 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-
-
 # Ensure project root is in path
 sys.path.append('../')
 from config import Config
-from dataset import QlibDataset
+from btc_dataset import BTCDataset
 from model.kronos import KronosTokenizer, Kronos
 # Import shared utilities
 from utils.training_utils import (
@@ -40,8 +38,8 @@ def create_dataloaders(config: dict, rank: int, world_size: int, device_type: st
         tuple: (train_loader, val_loader, train_dataset, valid_dataset).
     """
     print(f"[Rank {rank}] Creating dataloaders...")
-    train_dataset = QlibDataset('train')
-    valid_dataset = QlibDataset('val')
+    train_dataset = BTCDataset('train')
+    valid_dataset = BTCDataset('val')
     print(f"[Rank {rank}] Train dataset size: {len(train_dataset)}, Validation dataset size: {len(valid_dataset)}")
 
     # 根据设备类型选择采样器
@@ -111,7 +109,15 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
             train_dataset.set_epoch_seed(epoch_idx * 10000)  # MPS 不使用 rank
             valid_dataset.set_epoch_seed(0)
 
-        for i, (batch_x, batch_x_stamp) in enumerate(train_loader):
+        for i, batch_data in enumerate(train_loader):
+            # 从字典中提取特征张量
+            if isinstance(batch_data, dict):
+                batch_x = batch_data['x']
+                batch_x_stamp = batch_data['x_stamp']
+            else:
+                batch_x = batch_data[0] if isinstance(batch_data, (list, tuple)) else batch_data
+                batch_x_stamp = batch_data[1] if isinstance(batch_data, (list, tuple)) and len(batch_data) > 1 else None
+
             batch_x = batch_x.squeeze(0).to(device, non_blocking=True)
             batch_x_stamp = batch_x_stamp.squeeze(0).to(device, non_blocking=True)
 
@@ -161,7 +167,16 @@ def train_model(model, tokenizer, device, config, save_dir, logger, rank, world_
         tot_val_loss_sum_rank = 0.0
         val_batches_processed_rank = 0
         with torch.no_grad():
-            for batch_x, batch_x_stamp in val_loader:
+            for batch_data in val_loader:
+                # 从字典中提取特征张量
+                if isinstance(batch_data, dict):
+                    batch_x = batch_data['x']
+                    batch_x_stamp = batch_data['x_stamp']
+                else:
+                    batch_x = batch_data[0] if isinstance(batch_data, (list, tuple)) else batch_data
+                    batch_x_stamp = batch_data[1] if isinstance(batch_data, (list, tuple)) and len(
+                        batch_data) > 1 else None
+
                 batch_x = batch_x.squeeze(0).to(device, non_blocking=True)
                 batch_x_stamp = batch_x_stamp.squeeze(0).to(device, non_blocking=True)
 
@@ -256,7 +271,6 @@ def main(config: dict):
             'save_directory': save_dir,
             'world_size': world_size,
         }
-
 
     if device_type != "mps":  # 只在分布式训练中使用 barrier
         dist.barrier()

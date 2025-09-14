@@ -13,8 +13,12 @@ class Config:
         self.qlib_data_path = "~/.qlib/qlib_data/cn_data"
         self.instrument = 'csi300'
 
+        # BTC数据参数
+        self.symbol = 'BTCUSDT'
+        self.data_source = 'binance'  # 使用Binance数据源
+
         # Overall time range for data loading from Qlib.
-        self.dataset_begin_time = "2023-01-01"
+        self.dataset_begin_time = "2109-01-01"
         self.dataset_end_time = '2025-09-01'
 
         # Sliding window parameters for creating samples.
@@ -32,10 +36,10 @@ class Config:
         # =================================================================
         # Note: The validation/test set starts earlier than the training/validation set ends
         # to account for the `lookback_window`.
-        self.train_time_range = ["2019-11-01", "2025-09-10"]
-        self.val_time_range = ["2019-11-01", "2025-09-10"]
-        self.test_time_range = ["2019-11-01", "2025-09-10"]
-        self.backtest_time_range = ["2019-11-01", "2025-09-10"]
+        self.train_time_range = [self.dataset_begin_time, self.dataset_end_time]
+        self.val_time_range = [self.dataset_begin_time, self.dataset_end_time]
+        self.test_time_range = [self.dataset_begin_time, self.dataset_end_time]
+        self.backtest_time_range = [self.dataset_begin_time, self.dataset_end_time]
         #self.use_comet = False
 
         # TODO: Directory to save the processed, pickled datasets.
@@ -59,14 +63,14 @@ class Config:
         epochs
         通常意味着更长的训练时间和可能更好的模型性能（但也可能导致过拟合）
         在训练循环中的使用："""
-        self.epochs = 10
+        self.epochs = 15
         self.log_interval = 100  # Log training status every N batches.
         self.batch_size = 50  # Batch size per GPU.
 
         # Number of samples to draw for one "epoch" of training/validation.
         # This is useful for large datasets where a true epoch is too long.
         #self.n_train_iter = 2000 * self.batch_size
-        self.n_train_iter = 600000
+        self.n_train_iter = 800000
         self.n_val_iter = 400 * self.batch_size
 
         # Learning rates for different model components.
@@ -102,13 +106,13 @@ class Config:
 
         # Base directory for saving model checkpoints and results.
         # Using a general 'outputs' directory is a common practice.
-        self.save_path = "../data/outputs/models"
+        self.save_path = "/Users/longquan/Documents/git_repository/myself/kronos/data/outputs/models"
         self.tokenizer_save_folder_name = 'finetune_tokenizer_demo'
         self.predictor_save_folder_name = 'finetune_predictor_demo'
         self.backtest_save_folder_name = 'finetune_backtest_demo'
 
         # Path for backtesting results.
-        self.backtest_result_path = "../data/outputs/backtest_results"
+        self.backtest_result_path = "/Users/longquan/Documents/git_repository/myself/kronos/data/outputs/backtest_results"
 
         # =================================================================
         # Model & Checkpoint Paths
