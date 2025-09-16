@@ -18,12 +18,12 @@ class Config:
         self.data_source = 'binance'  # 使用Binance数据源
 
         # Overall time range for data loading from Qlib.
-        self.dataset_begin_time = "2019-01-01"
+        self.dataset_begin_time = "2022-01-01"
         self.dataset_end_time = '2025-09-01'
 
         # Sliding window parameters for creating samples.
-        self.lookback_window = 90  # Number of past time steps for input.
-        self.predict_window = 10  # Number of future time steps for prediction.
+        self.lookback_window = 360  # Number of past time steps for input.
+        self.predict_window = 120  # Number of future time steps for prediction.
         self.max_context = 512  # Maximum context length for the model.
 
         # Features to be used from the raw data.

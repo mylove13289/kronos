@@ -6,6 +6,7 @@ from db_config import DB_CONFIG
 import pymysql
 import sys
 import os
+from datetime import datetime, timedelta
 
 # 添加当前目录到Python路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -19,7 +20,7 @@ import torch
 import argparse
 
 
-def plot_prediction(kline_df, pred_df, symbol, iinterval,titleFlag, save_path=None):
+def plot_prediction(kline_df, pred_df, symbol,titleFlag, save_path=None):
     pred_df.index = kline_df.index[-pred_df.shape[0]:]
     sr_close = kline_df['close']
     sr_pred_close = pred_df['close']
@@ -41,7 +42,7 @@ def plot_prediction(kline_df, pred_df, symbol, iinterval,titleFlag, save_path=No
     ax1.set_ylabel('Close Price', fontsize=14)
     ax1.legend(loc='lower left', fontsize=12)
     ax1.grid(True)
-    ax1.set_title(f'{symbol} Price Prediction ({iinterval}- {titleFlag})', fontsize=16)
+    ax1.set_title(f'{symbol} Price Prediction ({titleFlag})', fontsize=16)
 
     ax2.plot(volume_df['Ground Truth'], label='Ground Truth', color='blue', linewidth=1.5)
     ax2.plot(volume_df['Prediction'], label='Prediction', color='red', linewidth=1.5)
@@ -57,7 +58,7 @@ def plot_prediction(kline_df, pred_df, symbol, iinterval,titleFlag, save_path=No
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         print(f"预测结果图片已保存到: {save_path}")
 
-    plt.show()
+    #plt.show()
 
 
 def load_kline_data_from_db(db_config, symbol=None, iinterval=None, start_date=None, end_date=None,count=0):
@@ -80,31 +81,10 @@ def load_kline_data_from_db(db_config, symbol=None, iinterval=None, start_date=N
     )
 
     # 构建SQL查询语句
-    query = "SELECT * FROM new_kline_data WHERE 1=1"
-    params = {}
-
-    if symbol:
-        query += " AND ts_code = :symbol"
-        params['symbol'] = symbol
-
-    if iinterval:
-        query += " AND iinterval = :iinterval"
-        params['iinterval'] = iinterval
-
-
-    if start_date:
-        query += " AND trade_date >= :start_date"
-        params['start_date'] = start_date
-
-    if end_date:
-        query += " AND trade_date <= :end_date"
-        params['end_date'] = end_date
-
-    query += f" ORDER BY trade_date asc limit {count}"
 
     # 执行查询并返回DataFrame
     #df = pd.read_sql_query(text(query), engine, params=params)
-    df = pd.read_sql_query(f'select * from (SELECT * FROM new_kline_data WHERE 1=1 AND ts_code = \'ETHUSDT\' AND iinterval = \'5m\' AND iinterval = \'5m\' and trade_date <= \'{end_date}\' order by id desc limit {count})t order by id asc ', engine)
+    df = pd.read_sql_query(f'select * from (SELECT * FROM new_kline_data WHERE 1=1 AND ts_code = \'{symbol}\' AND iinterval = \'{iinterval}\' and trade_date <= \'{end_date}\' order by id desc limit {count})t order by id asc ', engine)
     # 576 + 72
     # 将查出来的数据按trade_date进行升序
     #df['trade_date'] = pd.to_datetime(df['trade_date'])
@@ -118,7 +98,7 @@ def load_kline_data_from_db(db_config, symbol=None, iinterval=None, start_date=N
 import argparse
 
 
-def main(symbol, iinterval , lookback , pred_len ):
+def main(symbol, iinterval , lookback , pred_len,endDate ):
     """
     为什么是42？
     42这个数字在计算机科学和数学领域中具有特殊的文化意义：
@@ -137,11 +117,11 @@ def main(symbol, iinterval , lookback , pred_len ):
         torch.cuda.manual_seed_all(42)
 
     # 1. Load Model and Tokenizer
-    #tokenizer = KronosTokenizer.from_pretrained("/Users/longquan/Documents/MYSELF/models/Kronos-Tokenizer-base")
-    #model = Kronos.from_pretrained("/Users/longquan/Documents/MYSELF/models/Kronos-base")
+    tokenizer = KronosTokenizer.from_pretrained("/Users/longquan/Documents/MYSELF/models/Kronos-Tokenizer-base")
+    model = Kronos.from_pretrained("/Users/longquan/Documents/MYSELF/models/Kronos-base")
 
-    tokenizer = KronosTokenizer.from_pretrained("/Users/longquan/Documents/git_repository/myself/kronos/data/outputs/models/finetune_tokenizer_demo/checkpoints/best_model")
-    model = Kronos.from_pretrained("/Users/longquan/Documents/git_repository/myself/kronos/data/outputs/models/finetune_predictor_demo/checkpoints/best_model")
+    #tokenizer = KronosTokenizer.from_pretrained("/Users/longquan/Downloads/pipeline_run_20250914_052908_/pipeline_run_20250914_052908_tokenizer/checkpoints/best_model")
+    #model = Kronos.from_pretrained("/Users/longquan/Downloads/pipeline_run_20250914_052908_/pipeline_run_20250914_052908_predictor/checkpoints/epoch_0019")
 
 
     # 2. Instantiate Predictor
@@ -149,7 +129,7 @@ def main(symbol, iinterval , lookback , pred_len ):
 
     count = lookback + pred_len
     # 3. Prepare Data
-    df = load_kline_data_from_db(DB_CONFIG, symbol=symbol, iinterval=iinterval, start_date=None, end_date='2025-09-12 03:00:00',count=count)
+    df = load_kline_data_from_db(DB_CONFIG, symbol=symbol, iinterval=iinterval, start_date=None, end_date=endDate,count=count)
 
     # 添加数据验证
     if df.empty:
@@ -191,20 +171,27 @@ def main(symbol, iinterval , lookback , pred_len ):
     timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
     save_path = f"predictions/{symbol}_{iinterval}_prediction_{timestamp}.png"
 
-    titleFlag = f'{lookback}/{pred_len}';
+    titleFlag = f'{iinterval} -- {lookback}/{pred_len} -- {endDate}'
     # visualize
-    plot_prediction(kline_df, pred_df, symbol, iinterval,titleFlag, save_path)
+    plot_prediction(kline_df, pred_df, symbol,titleFlag, save_path)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Kronos Model Prediction')
-    parser.add_argument('--symbol', type=str, default='ETHUSDT', help='Trading pair symbol (e.g., BTCUSDT)')
+    parser.add_argument('--symbol', type=str, default='BTCUSDT', help='Trading pair symbol (e.g., BTCUSDT)')
     parser.add_argument('--iinterval', type=str, default='5m', help='Interval (e.g., 5m, 15m)')
-    parser.add_argument('--lookback', type=int, default=180, help='Lookback period')
-    parser.add_argument('--pred_len', type=int, default=30, help='Prediction length')
+    parser.add_argument('--lookback', type=int, default=360, help='Lookback period')
+    parser.add_argument('--pred_len', type=int, default=120, help='Prediction length')
+    parser.add_argument('--playback', type=int, default=0, help='回测')
+
 
     args = parser.parse_args()
 
+    # 将 datetime.now() 改为固定时间，例如 '2025-09-15 00:00:00'
+    fixed_time = datetime.strptime('2025-09-15 00:00:00', '%Y-%m-%d %H:%M:%S')
+    endDate = fixed_time - timedelta(minutes=args.playback * 15)
+    endDate = endDate.strftime('%Y-%m-%d %H:%M:%S')
+
     print(f"查询参数为：symbol={args.symbol}, iinterval={args.iinterval}, lookback={args.lookback}, pred_len={args.pred_len}")
 
-    main(symbol=args.symbol, iinterval=args.iinterval, lookback=args.lookback, pred_len=args.pred_len)
+    main(symbol=args.symbol, iinterval=args.iinterval, lookback=args.lookback, pred_len=args.pred_len,endDate=endDate)

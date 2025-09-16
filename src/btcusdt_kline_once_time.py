@@ -115,10 +115,10 @@ def kline_loop(symbol,iinterval,start_date, end_date):
 
 if __name__ == "__main__":
     # 开始时间和结束时间
-    start_date = '2025-09-13'
-    end_date = '2025-09-14'
-    symbol = 'ETHUSDT'
-    iinterval = '5m'
+    start_date = '2025-09-05'
+    end_date = '2025-09-15'
+    symbol = 'BTCUSDT'
+    iinterval = '15m'
     #symbol = sys.argv[1]
     #iinterval = sys.argv[2]
     # BTCUSDT,ETHUSDT , BNBUSDT,SOLUSDT，LTCUSDT, DOGEUSDT，XRPUSDT,LINKUSDT,OPUSDT,AVAXUSDT,BCHUSDT,UNIUSDT,

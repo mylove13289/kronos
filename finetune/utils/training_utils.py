@@ -6,29 +6,26 @@ import torch
 import torch.distributed as dist
 
 
+# 在 utils.training_utils.py 中修改 setup_ddp 函数
 def setup_ddp():
     """
-    Initializes the distributed data parallel environment.
-
-    This function relies on environment variables set by `torchrun` or a similar
-    launcher. It initializes the process group and sets the CUDA device for the
-    current process.
-
-    Returns:
-        tuple: A tuple containing (rank, world_size, local_rank).
+    Initialize the distributed training environment.
     """
-    if not dist.is_available():
-        raise RuntimeError("torch.distributed is not available.")
+    # 获取本地rank
+    local_rank = int(os.environ.get("LOCAL_RANK", 0))
 
-    dist.init_process_group(backend="nccl")
-    rank = int(os.environ["RANK"])
-    world_size = int(os.environ["WORLD_SIZE"])
-    local_rank = int(os.environ["LOCAL_RANK"])
-    torch.cuda.set_device(local_rank)
-    print(
-        f"[DDP Setup] Global Rank: {rank}/{world_size}, "
-        f"Local Rank (GPU): {local_rank} on device {torch.cuda.current_device()}"
+    # 明确设置设备ID
+    dist.init_process_group(
+        backend="nccl",
+        device_id=torch.device(f"cuda:{local_rank}")  # 明确指定device_id
     )
+
+    rank = dist.get_rank()
+    world_size = dist.get_world_size()
+
+    # 设置当前设备
+    torch.cuda.set_device(local_rank)
+
     return rank, world_size, local_rank
 
 
