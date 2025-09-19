@@ -11,6 +11,9 @@ target/
 
 #webui
 ### IntelliJ IDEA ###
+models
+models/Kronos-base/
+models/Kronos-Tokenizer-base/
 .idea
 *.iws
 *.iml

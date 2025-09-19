@@ -284,7 +284,7 @@ if __name__ == '__main__':
 
     try:
         # 加载和处理BTC数据
-        preprocessor.load_btc_data(interval='15m')
+        preprocessor.load_btc_data(interval='3m')
 
         # 准备训练数据集
         preprocessor.prepare_dataset()

@@ -1,26 +1,28 @@
 # do_prediction.py
-import pandas as pd
-import matplotlib.pyplot as plt
-from sqlalchemy import create_engine, text
-from db_config import DB_CONFIG
-import pymysql
-import sys
 import os
+import sys
 from datetime import datetime, timedelta
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from sqlalchemy import create_engine
+
+from db_config import DB_CONFIG
 
 # 添加当前目录到Python路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # 或者添加项目根目录到Python路径
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-
+import matplotlib.dates as mdates
 
 from model import Kronos, KronosTokenizer, KronosPredictor
 import numpy as np
 import torch
-import argparse
 
 
-def plot_prediction(kline_df, pred_df, symbol,titleFlag, save_path=None):
+
+
+def plot_prediction(kline_df, pred_df, symbol, titleFlag, save_path=None):
     pred_df.index = kline_df.index[-pred_df.shape[0]:]
     sr_close = kline_df['close']
     sr_pred_close = pred_df['close']
@@ -37,28 +39,39 @@ def plot_prediction(kline_df, pred_df, symbol,titleFlag, save_path=None):
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
 
-    ax1.plot(close_df['Ground Truth'], label='Ground Truth', color='blue', linewidth=1.5)
-    ax1.plot(close_df['Prediction'], label='Prediction', color='red', linewidth=1.5)
+    # 绘制价格图表
+    ax1.plot(close_df.index, close_df['Ground Truth'], label='Ground Truth', color='blue', linewidth=1.5)
+    ax1.plot(close_df.index, close_df['Prediction'], label='Prediction', color='red', linewidth=1.5)
     ax1.set_ylabel('Close Price', fontsize=14)
     ax1.legend(loc='lower left', fontsize=12)
     ax1.grid(True)
     ax1.set_title(f'{symbol} Price Prediction ({titleFlag})', fontsize=16)
 
-    ax2.plot(volume_df['Ground Truth'], label='Ground Truth', color='blue', linewidth=1.5)
-    ax2.plot(volume_df['Prediction'], label='Prediction', color='red', linewidth=1.5)
+    # 绘制成交量图表
+    ax2.plot(volume_df.index, volume_df['Ground Truth'], label='Ground Truth', color='blue', linewidth=1.5)
+    ax2.plot(volume_df.index, volume_df['Prediction'], label='Prediction', color='red', linewidth=1.5)
     ax2.set_ylabel('Volume', fontsize=14)
     ax2.legend(loc='upper left', fontsize=12)
     ax2.grid(True)
     ax2.set_xlabel('Time', fontsize=14)
 
+    # 设置x轴时间格式
+    # 根据数据的时间间隔选择合适的格式
+    if len(kline_df) > 0:
+        date_format = mdates.DateFormatter('%m-%d %H:%M')
+        ax2.xaxis.set_major_formatter(date_format)
+        ax2.xaxis.set_major_locator(mdates.AutoDateLocator())
+
+        # 旋转日期标签以避免重叠
+        plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45, ha='right')
+
     plt.tight_layout()
 
-    # 保存图片到本地
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         print(f"预测结果图片已保存到: {save_path}")
 
-    #plt.show()
+    plt.show()
 
 
 def load_kline_data_from_db(db_config, symbol=None, iinterval=None, start_date=None, end_date=None,count=0):
@@ -179,10 +192,10 @@ def main(symbol, iinterval , lookback , pred_len,endDate ):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Kronos Model Prediction')
     parser.add_argument('--symbol', type=str, default='BTCUSDT', help='Trading pair symbol (e.g., BTCUSDT)')
-    parser.add_argument('--iinterval', type=str, default='5m', help='Interval (e.g., 5m, 15m)')
-    parser.add_argument('--lookback', type=int, default=360, help='Lookback period')
-    parser.add_argument('--pred_len', type=int, default=120, help='Prediction length')
-    parser.add_argument('--playback', type=int, default=0, help='回测')
+    parser.add_argument('--iinterval', type=str, default='15m', help='Interval (e.g., 5m, 15m)')
+    parser.add_argument('--lookback', type=int, default=180, help='Lookback period')
+    parser.add_argument('--pred_len', type=int, default=45, help='Prediction length')
+    parser.add_argument('--playback', type=int, default=15, help='回测')
 
 
     args = parser.parse_args()

@@ -222,6 +222,7 @@ def main(config: dict):
     }
 
     # Model Initialization
+    print(f"Model Initialized from {config['pretrained_tokenizer_path']}")
     model = KronosTokenizer.from_pretrained(config['pretrained_tokenizer_path'])
     model.to(device)
     print(f"Model Size: {get_model_size(model)}")
@@ -245,4 +246,5 @@ if __name__ == '__main__':
         raise RuntimeError("This script must be launched with `torchrun`.")
 
     config_instance = Config()
+    print("🚀 Starting BTC data preprocessing...",config_instance)
     main(config_instance.__dict__)

@@ -12,18 +12,19 @@ class Config:
         # TODO: Update this path to your Qlib data directory.
         self.qlib_data_path = "~/.qlib/qlib_data/cn_data"
         self.instrument = 'csi300'
+        self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
         # BTC数据参数
         self.symbol = 'BTCUSDT'
         self.data_source = 'binance'  # 使用Binance数据源
 
         # Overall time range for data loading from Qlib.
-        self.dataset_begin_time = "2022-01-01"
+        self.dataset_begin_time = "2023-01-01"
         self.dataset_end_time = '2025-09-01'
 
         # Sliding window parameters for creating samples.
         self.lookback_window = 360  # Number of past time steps for input.
-        self.predict_window = 120  # Number of future time steps for prediction.
+        self.predict_window = 120  # Number of future time steps for prediction. 3分钟的情况下，120是6个小时
         self.max_context = 512  # Maximum context length for the model.
 
         # Features to be used from the raw data.
@@ -43,7 +44,7 @@ class Config:
         #self.use_comet = False
 
         # TODO: Directory to save the processed, pickled datasets.
-        self.dataset_path = "/Users/longquan/Documents/git_repository/myself/kronos/data/processed_datasets"
+        self.dataset_path = f'{self.base_dir}/data/processed_datasets'
 
         # =================================================================
         # Training Hyperparameters
@@ -75,9 +76,9 @@ class Config:
 
         # Learning rates for different model components.
         # 学习率 (BTC数据需要更小的学习率)
-        self.tokenizer_learning_rate = 4e-4
+        self.tokenizer_learning_rate = 5e-4
         # self.predictor_learning_rate = 2e-5
-        self.predictor_learning_rate = 8e-4
+        self.predictor_learning_rate = 1e-3
 
         # Gradient accumulation to simulate a larger batch size.
         self.accumulation_steps = 1
@@ -106,13 +107,13 @@ class Config:
 
         # Base directory for saving model checkpoints and results.
         # Using a general 'outputs' directory is a common practice.
-        self.save_path = "/Users/longquan/Documents/git_repository/myself/kronos/data/outputs/models"
+        self.save_path = f'{self.base_dir}/data/outputs/models'
         self.tokenizer_save_folder_name = 'finetune_tokenizer_demo'
         self.predictor_save_folder_name = 'finetune_predictor_demo'
         self.backtest_save_folder_name = 'finetune_backtest_demo'
 
         # Path for backtesting results.
-        self.backtest_result_path = "/Users/longquan/Documents/git_repository/myself/kronos/data/outputs/backtest_results"
+        self.backtest_result_path = f'{self.base_dir}/data/outputs/backtest_results'
 
         # =================================================================
         # Model & Checkpoint Paths
@@ -122,8 +123,8 @@ class Config:
         #self.pretrained_tokenizer_path = "/home/admin/software/NeoQuasar/Kronos-Tokenizer-base"
         #self.pretrained_predictor_path = "/home/admin/software/NeoQuasar/Kronos-small"
 
-        self.pretrained_tokenizer_path = "/Users/longquan/Documents/MYSELF/models/Kronos-Tokenizer-base"
-        self.pretrained_predictor_path = "/Users/longquan/Documents/MYSELF/models/Kronos-base"
+        self.pretrained_tokenizer_path = f'{self.base_dir}/models/Kronos-Tokenizer-base'
+        self.pretrained_predictor_path = f'{self.base_dir}/models/Kronos-base'
 
         # Paths to the fine-tuned models, derived from the save_path.
         # These will be generated automatically during training.
