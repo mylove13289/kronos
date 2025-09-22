@@ -76,7 +76,7 @@ class BTCDataPreprocessor:
                 endpoint_url = f"{base_url}/api/v3/klines"
                 try:
                     # 发送请求，增加10秒超时
-                    print(f"Attempting to fetch data from {endpoint_url}...")
+                    print(f"Attempting to fetch data({symbol}) from {endpoint_url}...")
                     response = requests.get(endpoint_url, params=params, timeout=10)
                     response.raise_for_status()
                     data = response.json()
@@ -127,6 +127,7 @@ class BTCDataPreprocessor:
         # 选择需要的列并转换数据类型
         df = df[['timestamp', 'open', 'high', 'low', 'close', 'volume']].copy()
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+        df['tscode'] = symbol
 
         # 转换为数值类型
         for col in ['open', 'high', 'low', 'close', 'volume']:
@@ -139,71 +140,69 @@ class BTCDataPreprocessor:
         print(f"Successfully fetched {len(df)} records from {df['timestamp'].min()} to {df['timestamp'].max()}")
         return df
 
-    def load_btc_data(self, interval='1h'):
+    def load_btc_data(self, interval='5m'):
         """
         Loads BTC data from Binance API and processes it.
         """
-        print("Loading and processing BTC data from Binance...")
-
-        # 获取BTC数据
-        try:
-            symbol_df = self.fetch_binance_data(
-                symbol=self.config.symbol,
-                interval=interval,
-                start_time=self.config.dataset_begin_time,
-                end_time=self.config.dataset_end_time
-            )
-        except Exception as e:
-            print(f"Error fetching BTC data: {e}")
-            print("Trying to load from local backup if available...")
-            backup_file = 'btc_backup_data.csv'
-            if os.path.exists(backup_file):
-                symbol_df = pd.read_csv(backup_file)
-                symbol_df['timestamp'] = pd.to_datetime(symbol_df['timestamp'])
-                print(f"Loaded backup data with {len(symbol_df)} records")
-            else:
+        #symbolList = ["BTCUSDT","ETHUSDT"]
+        symbolList = ["AVAXUSDT","BCHUSDT","BNBUSDT","BTCUSDT","DOGEUSDT","ETHUSDT","LINKUSDT","LTCUSDT","OPUSDT","SOLUSDT","UNIUSDT","XRPUSDT"]
+        #循环symbolList
+        for symbol in symbolList:
+            print(f"Loading and processing {symbol} data from Binance...")
+            try:
+                symbol_df = self.fetch_binance_data(
+                    symbol=symbol,
+                    interval=interval,
+                    start_time=self.config.dataset_begin_time,
+                    end_time=self.config.dataset_end_time
+                )
+            except Exception as e:
                 raise ValueError("Could not fetch BTC data and no backup available")
 
-        # 设置datetime为索引
-        symbol_df = symbol_df.set_index('timestamp')
 
-        # 重命名列以匹配原始框架格式
-        column_mapping = {
-            'volume': 'vol'
-        }
-        symbol_df = symbol_df.rename(columns=column_mapping)
+            # 设置datetime为索引
+            symbol_df = symbol_df.set_index('timestamp')
 
-        # 添加amount特征（成交额 = OHLC平均价 × 成交量，与qlib方法保持一致）
-        symbol_df['amt'] = ((symbol_df['open'] + symbol_df['high'] +
-                                symbol_df['low'] + symbol_df['close']) / 4) * symbol_df['vol']
-        print(f"Added amount feature (OHLC average * volume) to match qlib data")
+            # 重命名列以匹配原始框架格式
+            column_mapping = {
+                'volume': 'vol'
+            }
+            symbol_df = symbol_df.rename(columns=column_mapping)
 
-        # 添加时间特征（基于时间戳索引）
-        print("Adding time features...")
-        symbol_df['minute'] = symbol_df.index.minute
-        symbol_df['hour'] = symbol_df.index.hour
-        symbol_df['weekday'] = symbol_df.index.weekday  # 0=Monday, 6=Sunday
-        symbol_df['day'] = symbol_df.index.day
-        symbol_df['month'] = symbol_df.index.month
-        symbol_df['year'] = symbol_df.index.year
-        print(f"Added time features: {self.config.time_feature_list}")
+            # 添加amount特征（成交额 = OHLC平均价 × 成交量，与qlib方法保持一致）
+            symbol_df['amt'] = ((symbol_df['open'] + symbol_df['high'] +
+                                 symbol_df['low'] + symbol_df['close']) / 4) * symbol_df['vol']
+            print(f"Added amount feature (OHLC average * volume) to match qlib data")
 
-        # 选择最终特征（价格特征 + 时间特征）
-        final_features = self.config.feature_list + self.config.time_feature_list
-        symbol_df = symbol_df[final_features]
+            # 添加时间特征（基于时间戳索引）
+            print("Adding time features...")
+            symbol_df['minute'] = symbol_df.index.minute
+            symbol_df['hour'] = symbol_df.index.hour
+            symbol_df['weekday'] = symbol_df.index.weekday  # 0=Monday, 6=Sunday
+            symbol_df['day'] = symbol_df.index.day
+            symbol_df['month'] = symbol_df.index.month
+            symbol_df['year'] = symbol_df.index.year
+            print(f"Added time features: {self.config.time_feature_list}")
 
-        # 过滤掉数据不足的部分
-        symbol_df = symbol_df.dropna()
+            # 选择最终特征（价格特征 + 时间特征）
+            final_features = self.config.feature_list + self.config.time_feature_list
+            symbol_df = symbol_df[final_features]
 
+            # 过滤掉数据不足的部分
+            symbol_df = symbol_df.dropna()
+
+
+            # 存储处理后的数据
+            self.data[symbol] = symbol_df
+            print(
+                f"Processed BTC data: {len(symbol_df)} records from {symbol_df.index.min()} to {symbol_df.index.max()}")
         # 保存备份
         backup_file = 'data/btc_backup_data.csv'
         os.makedirs(os.path.dirname(backup_file), exist_ok=True)  # 添加这一行
-        symbol_df.reset_index().to_csv(backup_file, index=False)
-        print(f"Saved backup data to {backup_file}")
-
-        # 存储处理后的数据
-        self.data[self.config.symbol] = symbol_df
-        print(f"Processed BTC data: {len(symbol_df)} records from {symbol_df.index.min()} to {symbol_df.index.max()}")
+        # 将self.data保存为CSV文件
+        for symbol, df in self.data.items():
+            df.to_csv(backup_file)
+            print(f"Saved {symbol} data to {backup_file}")
 
     def prepare_dataset(self):
         """
@@ -212,29 +211,26 @@ class BTCDataPreprocessor:
         print("Splitting BTC data into train, validation, and test sets...")
         train_data, val_data, test_data = {}, {}, {}
 
-        symbol = self.config.symbol
-        symbol_df = self.data[symbol]
+        symbol_list = list(self.data.keys())
+        for i in trange(len(symbol_list), desc="Preparing Datasets"):
+            symbol = symbol_list[i]
+            symbol_df = self.data[symbol]
 
-        # Define time ranges from config.
-        train_start, train_end = self.config.train_time_range
-        val_start, val_end = self.config.val_time_range
-        test_start, test_end = self.config.test_time_range
+            # Define time ranges from config.
+            train_start, train_end = self.config.train_time_range
+            val_start, val_end = self.config.val_time_range
+            test_start, test_end = self.config.test_time_range
 
-        # Create boolean masks for each dataset split.
-        train_mask = (symbol_df.index >= train_start) & (symbol_df.index <= train_end)
-        val_mask = (symbol_df.index >= val_start) & (symbol_df.index <= val_end)
-        test_mask = (symbol_df.index >= test_start) & (symbol_df.index <= test_end)
+            # Create boolean masks for each dataset split.
+            train_mask = (symbol_df.index >= train_start) & (symbol_df.index <= train_end)
+            val_mask = (symbol_df.index >= val_start) & (symbol_df.index <= val_end)
+            test_mask = (symbol_df.index >= test_start) & (symbol_df.index <= test_end)
 
-        # Apply masks to create the final datasets.
-        train_data[symbol] = symbol_df[train_mask]
-        val_data[symbol] = symbol_df[val_mask]
-        test_data[symbol] = symbol_df[test_mask]
-
-        # 打印数据集信息
-        print(f"Dataset split summary:")
-        print(f"  Train: {len(train_data[symbol])} records ({train_start} to {train_end})")
-        print(f"  Val:   {len(val_data[symbol])} records ({val_start} to {val_end})")
-        print(f"  Test:  {len(test_data[symbol])} records ({test_start} to {test_end})")
+            # Apply masks to create the final datasets.
+            train_data[symbol] = symbol_df[train_mask]
+            val_data[symbol] = symbol_df[val_mask]
+            test_data[symbol] = symbol_df[test_mask]
+            print(f'prepare_dataset,{symbol}')
 
         # Save the datasets using pickle.
         os.makedirs(self.config.dataset_path, exist_ok=True)
@@ -275,7 +271,7 @@ class BTCDataPreprocessor:
 
 if __name__ == '__main__':
     # This block allows the script to be run directly to perform data preprocessing.
-    print("🚀 Starting BTC data preprocessing...")
+    print("🚀 Starting data preprocessing...")
 
     preprocessor = BTCDataPreprocessor()
 
@@ -292,7 +288,7 @@ if __name__ == '__main__':
         # 验证数据
         preprocessor.verify_data()
 
-        print("✅ BTC data preprocessing completed successfully!")
+        print("✅data preprocessing completed successfully!")
 
     except Exception as e:
         print(f"❌ Error during preprocessing: {e}")
