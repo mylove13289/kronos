@@ -199,10 +199,22 @@ class BTCDataPreprocessor:
         # 保存备份
         backup_file = 'data/btc_backup_data.csv'
         os.makedirs(os.path.dirname(backup_file), exist_ok=True)  # 添加这一行
+
         # 将self.data保存为CSV文件
+        first_symbol = True
         for symbol, df in self.data.items():
-            df.to_csv(backup_file)
+            # 为每个symbol的数据添加symbol列
+            df_with_symbol = df.copy()
+            df_with_symbol['symbol'] = symbol
+
+            # 第一个symbol写入header，后续的追加且不写header
+            if first_symbol:
+                df_with_symbol.to_csv(backup_file, mode='w', header=True)
+                first_symbol = False
+            else:
+                df_with_symbol.to_csv(backup_file, mode='a', header=False)
             print(f"Saved {symbol} data to {backup_file}")
+
 
     def prepare_dataset(self):
         """
