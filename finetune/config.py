@@ -20,7 +20,7 @@ class Config:
 
         # Overall time range for data loading from Qlib.
         self.dataset_begin_time = "2023-01-01"
-        self.dataset_end_time = '2025-09-01'
+        self.dataset_end_time = '2025-09-20'
 
         # Sliding window parameters for creating samples.
         self.lookback_window = 360  # Number of past time steps for input.
