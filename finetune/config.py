@@ -66,7 +66,7 @@ class Config:
         在训练循环中的使用："""
         self.epochs = 15
         self.log_interval = 100  # Log training status every N batches.
-        self.batch_size = 50  # Batch size per GPU.
+        self.batch_size = 30  # Batch size per GPU.
 
         # Number of samples to draw for one "epoch" of training/validation.
         # This is useful for large datasets where a true epoch is too long.

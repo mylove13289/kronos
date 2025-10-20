@@ -222,7 +222,7 @@ def get_model_for_sizing(model):
 def main(config: dict):
     """Main function to orchestrate the DDP training process."""
     rank, world_size, local_rank = setup_ddp()
-    device = torch.device('mps:0')
+    device = torch.device('cuda:0')
     set_seed(config['seed'], rank)
 
     save_dir = os.path.join(config['save_path'], config['predictor_save_folder_name'])
@@ -236,17 +236,6 @@ def main(config: dict):
             'save_directory': save_dir,
             'world_size': world_size,
         }
-        if config['use_comet']:
-            comet_logger = comet_ml.Experiment(
-                api_key=config['comet_config']['api_key'],
-                project_name=config['comet_config']['project_name'],
-                workspace=config['comet_config']['workspace'],
-            )
-            comet_logger.add_tag(config['comet_tag'])
-            comet_logger.set_name(config['comet_name'])
-            comet_logger.log_parameters(config)
-            print("Comet Logger Initialized.")
-
     # Model Initialization
     tokenizer = KronosTokenizer.from_pretrained(config['finetuned_tokenizer_path'])
     tokenizer.eval().to(device)
